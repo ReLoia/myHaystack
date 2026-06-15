@@ -10,7 +10,7 @@ A remake of Macless Haystack (originally OpenHaystack) Mobile App.
 
 ## Why
 
-I always loved the work done by the authors of OpenHaystack and MaclessHaystack but I've always hated the UI of the mobile app.  
+I've always loved the work done by the authors of OpenHaystack and MaclessHaystack but I've always hated the UI of the mobile app.  
 After searching for a while I couldn't find a fork or derivate of them that remade the mobile application (with support to a selfhosted macless-haystack server) so I decided to make one myself.  
 
 #### [OpenTagViewer](https://github.com/parawanderer/OpenTagViewer/)
