@@ -6,6 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:myhaystack/features/preferences/presentation/screens/settings.dart';
 import 'package:myhaystack/shared/domain/entities/tracked_item.dart';
 
+import '../../../../core/services/location_service.dart';
 import '../viewmodels/map_viewmodel.dart';
 import '../widgets/map_action_button.dart';
 import '../widgets/tag_card.dart';
@@ -21,20 +22,18 @@ class MapPage extends ConsumerStatefulWidget {
 class _MapPageState extends ConsumerState<MapPage>
     with TickerProviderStateMixin {
   late final AnimatedMapController _animatedMapController =
-  AnimatedMapController(
-    vsync: this,
-    duration: const Duration(milliseconds: 750),
-    curve: Curves.easeInOutCubic,
-  );
+      AnimatedMapController(
+        vsync: this,
+        duration: const Duration(milliseconds: 750),
+        curve: Curves.easeInOutCubic,
+      );
 
   final PageController _pageController = PageController(viewportFraction: 0.85);
 
   void _onPageChanged(int index) {
     ref.read(mapViewModelProvider.notifier).updateIndex(index);
 
-    final state = ref
-        .read(mapViewModelProvider)
-        .value;
+    final state = ref.read(mapViewModelProvider).value;
     if (state != null && state.items.isNotEmpty) {
       _animatedMapController.animateTo(
         dest: state.items[index].currLocation,
@@ -53,6 +52,8 @@ class _MapPageState extends ConsumerState<MapPage>
   @override
   Widget build(BuildContext context) {
     final mapStateAsync = ref.watch(mapViewModelProvider);
+    final userLocationAsync = ref.watch(userLocationProvider);
+    ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       body: mapStateAsync.when(
@@ -74,16 +75,37 @@ class _MapPageState extends ConsumerState<MapPage>
                   interactionOptions: const InteractionOptions(
                     flags: InteractiveFlag.all,
                   ),
+                  onMapReady: _moveToUser,
                 ),
                 children: [
                   TileLayer(
                     urlTemplate:
-                    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
                     subdomains: const ['a', 'b', 'c', 'd'],
                     userAgentPackageName: "it.reloia.myhaystack",
                   ),
                   MarkerLayer(
                     markers: [
+                      if (userLocationAsync.value != null)
+                        Marker(
+                          point: userLocationAsync.value!,
+                          width: 24,
+                          height: 24,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary,
+                              shape: BoxShape.circle,
+                              border: Border.all(color: Colors.white, width: 3),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 6,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ...items.indexed
                           .where((record) {
                             final (index, _) = record;
@@ -95,11 +117,7 @@ class _MapPageState extends ConsumerState<MapPage>
                           }),
 
                       if (items.isNotEmpty)
-                        _buildMarker(
-                          items[currentIndex],
-                          true,
-                          currentIndex,
-                        ),
+                        _buildMarker(items[currentIndex], true, currentIndex),
                     ],
                   ),
                 ],
@@ -113,16 +131,35 @@ class _MapPageState extends ConsumerState<MapPage>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    MapActionButton(
-                      icon: Icons.settings,
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsPage(),
-                          ),
-                        );
-                      },
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      spacing: 8,
+                      children: [
+                        MapActionButton(
+                          icon: Icons.settings,
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        MapActionButton(
+                          icon: Icons.my_location,
+                          onPressed: () async {
+                            if (!await _moveToUser()) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Could not get user location'),
+                                ),
+                              );
+                            }
+                          },
+                          size: 38,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -183,5 +220,16 @@ class _MapPageState extends ConsumerState<MapPage>
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOutCubic,
     );
+  }
+
+  Future<bool> _moveToUser() async {
+    final locationService = ref.read(locationServiceProvider);
+    final userPos = await locationService.getUserLocation();
+
+    if (userPos != null) {
+      _animatedMapController.animateTo(dest: userPos, zoom: 15.0);
+      return true;
+    }
+    return false;
   }
 }
