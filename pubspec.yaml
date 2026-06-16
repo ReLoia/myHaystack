@@ -15,9 +15,11 @@ dependencies:
 
   cupertino_icons: ^1.0.8
   dynamic_color: ^1.8.1
-  provider: ^6.1.5+1
+
+#  Map Logic
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
+  flutter_map_animations: ^0.10.0
 dev_dependencies:
   flutter_test:
     sdk: flutter
