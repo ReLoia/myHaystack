@@ -1,43 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:dynamic_color/dynamic_color.dart';
-import 'package:myhaystack/features/map/presentation/pages/map.dart';
-import 'package:provider/provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myhaystack/features/map/presentation/screens/map.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  static final _defaultLightColorScheme = ColorScheme.fromSeed(seedColor: Colors.deepOrangeAccent);
+class MyApp extends ConsumerWidget {
+  static final _defaultLightColorScheme = ColorScheme.fromSeed(
+    seedColor: Colors.deepOrangeAccent,
+  );
   static final _defaultDarkColorScheme = ColorScheme.fromSeed(
-      seedColor: Colors.deepOrangeAccent,
-      brightness: Brightness.dark
+    seedColor: Colors.deepOrangeAccent,
+    brightness: Brightness.dark,
   );
 
   @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      // TODO: add providers
-      providers: [
-        ChangeNotifierProvider(create: (_) => null),
-      ],
-      child: DynamicColorBuilder(
-        builder: (lightDynamic, darkDynamic) {
-          return MaterialApp(
-            theme: ThemeData(
-              colorScheme: lightDynamic ?? _defaultLightColorScheme,
-              useMaterial3: true,
-            ),
-            darkTheme: ThemeData(
-              colorScheme: darkDynamic ?? _defaultDarkColorScheme,
-              useMaterial3: true,
-            ),
-            home: const AppLayout(),
-          );
-        },
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return DynamicColorBuilder(
+      builder: (lightDynamic, darkDynamic) {
+        return MaterialApp(
+          theme: ThemeData(
+            colorScheme: lightDynamic ?? _defaultLightColorScheme,
+            useMaterial3: true,
+          ),
+          darkTheme: ThemeData(
+            colorScheme: darkDynamic ?? _defaultDarkColorScheme,
+            useMaterial3: true,
+          ),
+          home: const AppLayout(),
+        );
+      },
     );
   }
 }
@@ -58,12 +52,6 @@ class _AppLayoutState extends State<AppLayout> {
   @override
   void dispose() {
     super.dispose();
-  }
-
-  @override
-  void didChangeDependencies() {
-    precacheImage(const AssetImage('assets/myhaystack-icon.png'), context);
-    super.didChangeDependencies();
   }
 
   @override
