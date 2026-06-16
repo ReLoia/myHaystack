@@ -1,8 +1,8 @@
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../../../shared/domain/entities/tracked_item.dart';
-
 
 class TagMarker extends StatelessWidget {
   final TrackedItem item;
@@ -17,6 +17,7 @@ class TagMarker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final itemColor = Color(item.color);
 
     return Transform.rotate(
       angle: -math.pi / 4,
@@ -30,7 +31,7 @@ class TagMarker extends StatelessWidget {
             bottomLeft: Radius.zero,
           ),
           border: Border.all(
-            color: isSelected ? colors.primary : colors.outlineVariant,
+            color: isSelected ? itemColor : colors.outlineVariant,
             width: isSelected ? 3 : 1.5,
           ),
           boxShadow: const [
@@ -46,11 +47,16 @@ class TagMarker extends StatelessWidget {
           angle: math.pi / 4,
           child: CircleAvatar(
             backgroundColor: isSelected
-                ? colors.primary
+                ? itemColor
                 : colors.secondaryContainer,
-            child: Icon(
-              item.icon,
-              color: isSelected ? colors.onPrimary : colors.onSecondaryContainer,
+            child: item.emoji != null && item.emoji!.trim().isNotEmpty
+                ? Text(
+              item.emoji!,
+              style: TextStyle(fontSize: isSelected ? 22 : 14),
+            )
+                : Icon(
+              Icons.location_on,
+              color: isSelected ? Colors.white : colors.onSecondaryContainer,
               size: isSelected ? 26 : 18,
             ),
           ),

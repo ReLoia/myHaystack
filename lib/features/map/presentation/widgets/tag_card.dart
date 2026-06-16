@@ -17,6 +17,7 @@ class TagCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final itemColor = Color(item.color);
 
     return GestureDetector(
       onTap: onTap,
@@ -33,10 +34,15 @@ class TagCard extends StatelessWidget {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: colorScheme.primaryContainer,
-                    child: Icon(
-                      item.icon,
-                      color: colorScheme.onPrimaryContainer,
+                    backgroundColor: itemColor.withValues(alpha: 0.2),
+                    child: item.emoji != null && item.emoji!.trim().isNotEmpty
+                        ? Text(
+                      item.emoji!,
+                      style: const TextStyle(fontSize: 20),
+                    )
+                        : Icon(
+                      Icons.location_on,
+                      color: itemColor,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -51,13 +57,7 @@ class TagCard extends StatelessWidget {
                           color: colorScheme.onSurface,
                         ),
                       ),
-                      Text(
-                        item.status,
-                        style: TextStyle(
-                          color: colorScheme.onSurfaceVariant,
-                          fontSize: 13,
-                        ),
-                      ),
+                      // TODO: use some api to get the address of the location and other data
                     ],
                   ),
                 ],
