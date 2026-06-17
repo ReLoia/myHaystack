@@ -16,15 +16,20 @@ class TagCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     final itemColor = Color(item.color);
+
+    final itemColorScheme = ColorScheme.fromSeed(
+      seedColor: itemColor,
+      brightness: brightness,
+    );
 
     return GestureDetector(
       onTap: onTap,
       child: Card(
         margin: EdgeInsets.fromLTRB(8, selected ? 4 : 12, 8, selected ? 8 : 4),
         elevation: 6,
-        color: colorScheme.surface.withValues(alpha: 0.95),
+        color: itemColorScheme.surface.withValues(alpha: 0.95),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -34,16 +39,16 @@ class TagCard extends StatelessWidget {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: itemColor.withValues(alpha: 0.2),
+                    backgroundColor: itemColorScheme.primaryContainer,
                     child: item.emoji != null && item.emoji!.trim().isNotEmpty
                         ? Text(
-                      item.emoji!,
-                      style: const TextStyle(fontSize: 20),
-                    )
+                            item.emoji!,
+                            style: const TextStyle(fontSize: 20),
+                          )
                         : Icon(
-                      Icons.location_on,
-                      color: itemColor,
-                    ),
+                            Icons.location_on,
+                            color: itemColorScheme.onPrimaryContainer,
+                          ),
                   ),
                   const SizedBox(width: 12),
                   Column(
@@ -54,7 +59,7 @@ class TagCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
+                          color: itemColorScheme.onSurface,
                         ),
                       ),
                       // TODO: use some api to get the address of the location and other data
@@ -68,8 +73,8 @@ class TagCard extends StatelessWidget {
                   Expanded(
                     child: ElevatedButton.icon(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
+                        backgroundColor: itemColorScheme.primary,
+                        foregroundColor: itemColorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
