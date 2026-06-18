@@ -1,15 +1,19 @@
 import 'package:drift/drift.dart';
 import 'package:latlong2/latlong.dart';
 
+import '../../../core/services/macless_haystack_api_service.dart';
+import '../../../core/utils/findmy_crypto_utils.dart';
 import '../../domain/entities/tracked_item.dart' as domain;
 import '../../domain/entities/tracked_item.dart';
 import '../../domain/repositories/tracked_item_repository.dart';
 import '../local/database.dart';
+import '../models/location_report_model.dart';
 
 class TrackedItemRepositoryImpl implements TrackedItemRepository {
   final AppDatabase _db;
+  final MaclessHaystackApiService apiService;
 
-  TrackedItemRepositoryImpl(this._db);
+  TrackedItemRepositoryImpl(this._db, this.apiService);
 
   @override
   Stream<List<TrackedItem>> watchItems() {
@@ -71,5 +75,79 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
             timestamp: DateTime.now(),
           ),
         );
+  }
+
+  @override
+  Future<void> syncLocationsWithServer() async {
+    final items = await _db.select(_db.trackedItems).get();
+    if (items.isEmpty) return;
+
+    Map<String, TrackedItemDbData> hashedKeyToItem = {};
+
+    for (var item in items) {
+      try {
+        String normalizedKey = item.privateKey;
+        while (normalizedKey.length % 4 != 0) {
+          normalizedKey += '=';
+        }
+
+        final hashedKey = FindMyCryptoUtils.getHashedAdvKeyFromPrivateKey(
+          normalizedKey,
+        );
+        hashedKeyToItem[hashedKey] = item;
+      } catch (e) {
+        print(
+          "Skipping item '${item.name}' (ID: ${item.id}): Invalid private key format.",
+        );
+        continue;
+      }
+    }
+
+    if (hashedKeyToItem.isEmpty) {
+      print("No valid keys found to sync.");
+      return;
+    }
+
+    // TODO: get the preferences from user
+    final List<LocationReportModel> results = await apiService
+        .fetchLocationReports(
+          hashedAdvertisementKeys: hashedKeyToItem.keys.toList(),
+          daysToFetch: 7,
+          serverUrl: '',
+          username: '',
+          password: '',
+        );
+
+    for (var report in results) {
+      for (var item in hashedKeyToItem.values) {
+        String normalizedKey = item.privateKey;
+        while (normalizedKey.length % 4 != 0) {
+          normalizedKey += '=';
+        }
+
+        final decrypted = FindMyCryptoUtils.decryptReport(
+          report,
+          normalizedKey,
+        );
+
+        if (decrypted != null) {
+          await _db
+              .into(_db.locationPoints)
+              .insert(
+                LocationPointsCompanion.insert(
+                  trackedItemId: item.id,
+                  latitude: decrypted.latitude,
+                  longitude: decrypted.longitude,
+                  timestamp: decrypted.timestamp,
+                  accuracy: Value(decrypted.accuracy),
+                  batteryStatus: Value(decrypted.batteryStatus),
+                ),
+                mode: InsertMode.insertOrIgnore,
+              );
+
+          break;
+        }
+      }
+    }
   }
 }

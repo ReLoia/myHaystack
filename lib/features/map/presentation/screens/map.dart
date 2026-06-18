@@ -84,6 +84,21 @@ class _MapPageState extends ConsumerState<MapPage>
                     subdomains: const ['a', 'b', 'c', 'd'],
                     userAgentPackageName: "it.reloia.myhaystack",
                   ),
+                  // A circle that shows the (in)accuracy radius of the item
+                  CircleLayer(
+                    circles: items.map((item) {
+                      final double radiusInMeters = (item.accuracy ?? 0).toDouble();
+
+                      return CircleMarker(
+                        point: item.currLocation,
+                        color: colorScheme.primary.withValues(alpha: 0.15),
+                        borderColor: colorScheme.primary.withValues(alpha: 0.5),
+                        borderStrokeWidth: 1.5,
+                        radius: radiusInMeters > 5 ? radiusInMeters : 0,
+                        useRadiusInMeter: true,
+                      );
+                    }).toList(),
+                  ),
                   MarkerLayer(
                     markers: [
                       if (userLocationAsync.value != null)
