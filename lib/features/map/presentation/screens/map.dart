@@ -76,6 +76,8 @@ class _MapPageState extends ConsumerState<MapPage>
                     flags: InteractiveFlag.all,
                   ),
                   onMapReady: _moveToUser,
+                  maxZoom: 20,
+                  minZoom: 4
                 ),
                 children: [
                   TileLayer(
@@ -155,9 +157,7 @@ class _MapPageState extends ConsumerState<MapPage>
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => const SettingsPage(),
-                              ),
+                              MaterialPageRoute(builder: (_) => const SettingsPage()),
                             );
                           },
                         ),
@@ -171,6 +171,13 @@ class _MapPageState extends ConsumerState<MapPage>
                                 ),
                               );
                             }
+                          },
+                          size: 38,
+                        ),
+                        MapActionButton(
+                          icon: Icons.refresh,
+                          onPressed: () async {
+                            ref.read(mapViewModelProvider.notifier).syncLocations();
                           },
                           size: 38,
                         ),

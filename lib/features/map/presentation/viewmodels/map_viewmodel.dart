@@ -6,13 +6,23 @@ import '../../../../shared/presentation/providers/app_providers.dart';
 class MapState {
   final List<TrackedItem> items;
   final int currentIndex;
+  final bool isSyncing;
 
-  MapState({required this.items, this.currentIndex = 0});
+  MapState({
+    required this.items,
+    this.currentIndex = 0,
+    this.isSyncing = false,
+  });
 
-  MapState copyWith({List<TrackedItem>? items, int? currentIndex}) {
+  MapState copyWith({
+    List<TrackedItem>? items,
+    int? currentIndex,
+    bool? isSyncing,
+  }) {
     return MapState(
       items: items ?? this.items,
       currentIndex: currentIndex ?? this.currentIndex,
+      isSyncing: isSyncing ?? this.isSyncing,
     );
   }
 }
@@ -24,13 +34,35 @@ class MapViewModel extends StreamNotifier<MapState> {
 
     return repo.watchItems().map((dbItems) {
       final currentIdx = state.value?.currentIndex ?? 0;
+      final isSyncing = state.value?.isSyncing ?? false;
 
       final safeIdx = currentIdx >= dbItems.length && dbItems.isNotEmpty
           ? dbItems.length - 1
           : currentIdx;
 
-      return MapState(items: dbItems, currentIndex: safeIdx);
+      return MapState(
+        items: dbItems,
+        currentIndex: safeIdx,
+        isSyncing: isSyncing,
+      );
     });
+  }
+
+  Future<void> syncLocations() async {
+    if (state.value != null) {
+      state = AsyncData(state.value!.copyWith(isSyncing: true));
+    }
+
+    try {
+      final syncUseCase = ref.read(syncLocationsUseCaseProvider);
+      await syncUseCase();
+    } catch (e) {
+      print("Sync error: $e");
+    } finally {
+      if (state.value != null) {
+        state = AsyncData(state.value!.copyWith(isSyncing: false));
+      }
+    }
   }
 
   void updateIndex(int index) {
@@ -42,5 +74,5 @@ class MapViewModel extends StreamNotifier<MapState> {
 }
 
 final mapViewModelProvider = StreamNotifierProvider<MapViewModel, MapState>(
-  () => MapViewModel(),
+      () => MapViewModel(),
 );

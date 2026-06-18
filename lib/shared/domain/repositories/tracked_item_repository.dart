@@ -14,4 +14,6 @@ abstract class TrackedItemRepository {
   Future<void> deleteTrackedItem(String itemId);
 
   Future<void> saveNewLocation(String trackedItemId, LatLng location);
+
+  Future<void> syncLocationsWithServer();
 }
