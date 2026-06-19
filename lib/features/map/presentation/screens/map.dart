@@ -77,7 +77,13 @@ class _MapPageState extends ConsumerState<MapPage>
                   ),
                   onMapReady: _moveToUser,
                   maxZoom: 20,
-                  minZoom: 4
+                  minZoom: 4,
+                  cameraConstraint: CameraConstraint.contain(
+                    bounds: LatLngBounds(
+                      const LatLng(-90, -180),
+                      const LatLng(90, 180),
+                    ),
+                  ),
                 ),
                 children: [
                   TileLayer(
@@ -86,17 +92,19 @@ class _MapPageState extends ConsumerState<MapPage>
                     subdomains: const ['a', 'b', 'c', 'd'],
                     userAgentPackageName: "it.reloia.myhaystack",
                   ),
-                  // A circle that shows the (in)accuracy radius of the item
                   CircleLayer(
                     circles: items.map((item) {
                       final double radiusInMeters = (item.accuracy ?? 0).toDouble();
+
+                      final currentZoom = _animatedMapController.mapController.camera.zoom;
+                      final bool shouldShowCircle = currentZoom > 8 && radiusInMeters > 5;
 
                       return CircleMarker(
                         point: item.currLocation,
                         color: colorScheme.primary.withValues(alpha: 0.15),
                         borderColor: colorScheme.primary.withValues(alpha: 0.5),
                         borderStrokeWidth: 1.5,
-                        radius: radiusInMeters > 5 ? radiusInMeters : 0,
+                        radius: shouldShowCircle ? radiusInMeters : 0,
                         useRadiusInMeter: true,
                       );
                     }).toList(),
