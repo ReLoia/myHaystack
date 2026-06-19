@@ -65,6 +65,21 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
     }
   }
 
+  Future<void> importJsonContent(String content) async {
+    try {
+      final importService = ref.read(itemImportServiceProvider);
+      final repo = ref.read(trackedItemRepositoryProvider);
+
+      final newItems = importService.parseJsonContent(content);
+
+      for (final item in newItems) {
+        await repo.addTrackedItem(item);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> exportItems(List<TrackedItem> itemsToExport) async {
     final exportService = ref.read(itemExportServiceProvider);
 

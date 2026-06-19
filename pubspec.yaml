@@ -47,6 +47,7 @@ dependencies:
   uuid: ^4.5.3
   pointycastle: ^4.0.0
   shared_preferences: ^2.5.5
+  flutter_sharing_intent: ^2.0.4
 
 dev_dependencies:
   flutter_test:
