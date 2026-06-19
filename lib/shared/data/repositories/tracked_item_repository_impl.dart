@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../../../core/services/macless_haystack_api_service.dart';
+import '../../../core/services/preferences_service.dart';
 import '../../../core/utils/findmy_crypto_utils.dart';
 import '../../domain/entities/tracked_item.dart' as domain;
 import '../../domain/entities/tracked_item.dart';
@@ -12,8 +13,9 @@ import '../models/location_report_model.dart';
 class TrackedItemRepositoryImpl implements TrackedItemRepository {
   final AppDatabase _db;
   final MaclessHaystackApiService apiService;
+  final PreferencesService _prefs;
 
-  TrackedItemRepositoryImpl(this._db, this.apiService);
+  TrackedItemRepositoryImpl(this._db, this.apiService, this._prefs);
 
   @override
   Stream<List<TrackedItem>> watchItems() {
@@ -108,14 +110,13 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
       return;
     }
 
-    // TODO: get the preferences from user
     final List<LocationReportModel> results = await apiService
         .fetchLocationReports(
           hashedAdvertisementKeys: hashedKeyToItem.keys.toList(),
-          daysToFetch: 7,
-          serverUrl: '',
-          username: '',
-          password: '',
+          daysToFetch: _prefs.daysRetrieval,
+          serverUrl: _prefs.serverUrl,
+          username: _prefs.username,
+          password: _prefs.password,
         );
 
     for (var report in results) {
