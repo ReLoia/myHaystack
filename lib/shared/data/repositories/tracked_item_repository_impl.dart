@@ -8,7 +8,6 @@ import '../../domain/entities/tracked_item.dart' as domain;
 import '../../domain/entities/tracked_item.dart';
 import '../../domain/repositories/tracked_item_repository.dart';
 import '../local/database.dart';
-import '../models/decrypted_location_model.dart';
 import '../models/location_report_model.dart';
 
 class TrackedItemRepositoryImpl implements TrackedItemRepository {
@@ -90,26 +89,6 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
   }
 
   @override
-  Future<void> saveNewLocation(
-    String trackedItemId,
-    DecryptedLocationModel decrypted,
-  ) async {
-    await _db
-        .into(_db.locationPoints)
-        .insert(
-          LocationPointsCompanion.insert(
-            trackedItemId: trackedItemId,
-            latitude: decrypted.latitude,
-            longitude: decrypted.longitude,
-            timestamp: decrypted.timestamp,
-            accuracy: Value(decrypted.accuracy),
-            batteryStatus: Value(decrypted.batteryStatus),
-          ),
-          mode: InsertMode.insertOrIgnore,
-        );
-  }
-
-  @override
   Future<int> syncLocationsWithServer() async {
     final items = await _db.select(_db.trackedItems).get();
     if (items.isEmpty) return 0;
@@ -136,6 +115,8 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
               password: _prefs.password,
             );
 
+        final companions = <LocationPointsCompanion>[];
+
         for (var report in results) {
           final decrypted = FindMyCryptoUtils.decryptReport(
             report,
@@ -143,10 +124,48 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
           );
 
           if (decrypted != null) {
-            saveNewLocation(item.id, decrypted);
-            totalSynced++;
+            companions.add(
+              LocationPointsCompanion.insert(
+                trackedItemId: item.id,
+                latitude: decrypted.latitude,
+                longitude: decrypted.longitude,
+                timestamp: decrypted.timestamp,
+                accuracy: Value(decrypted.accuracy),
+                batteryStatus: Value(decrypted.batteryStatus),
+              ),
+            );
           }
         }
+
+        if (companions.isEmpty) continue;
+
+        final countExp = _db.locationPoints.id.count();
+        final countQuery = _db.selectOnly(_db.locationPoints)
+          ..addColumns([countExp])
+          ..where(_db.locationPoints.trackedItemId.equals(item.id));
+
+        final countBefore = await countQuery
+            .map((row) => row.read(countExp))
+            .getSingle();
+
+        await _db.batch((batch) {
+          batch.insertAll(
+            _db.locationPoints,
+            companions,
+            mode: InsertMode.insertOrIgnore,
+          );
+        });
+
+        final countAfter = await countQuery
+            .map((row) => row.read(countExp))
+            .getSingle();
+
+        Logger.info(
+          "The stored location is now $countAfter, before $countBefore",
+          prefix: "TrackedItemRepository",
+        );
+
+        totalSynced += (countAfter! - countBefore!);
       } catch (e) {
         Logger.error(
           "Skipping item '${item.name}' (ID: ${item.id}) or sync failed: $e",

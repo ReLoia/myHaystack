@@ -1,4 +1,3 @@
-import '../../data/models/decrypted_location_model.dart';
 import '../entities/tracked_item.dart';
 
 abstract class TrackedItemRepository {
@@ -13,11 +12,6 @@ abstract class TrackedItemRepository {
   Future<void> reorderTrackedItems(List<TrackedItem> items);
 
   Future<void> deleteTrackedItem(String itemId);
-
-  Future<void> saveNewLocation(
-    String trackedItemId,
-    DecryptedLocationModel decrypted,
-  );
 
   Future<int> syncLocationsWithServer();
 }
