@@ -96,7 +96,22 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Add a new Item')),
+      appBar: AppBar(
+        title: const Text('Add a new Item'),
+        actions: [
+          IconButton(
+            icon: _isSaving
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.save),
+            tooltip: 'Save Item',
+            onPressed: _isSaving ? null : _submit,
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -130,9 +145,15 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
                   prefixIcon: Icon(Icons.vpn_key_outlined),
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) => value?.trim().isEmpty == true
-                    ? 'Please enter the private key'
-                    : null,
+                validator: (value) {
+                  if (value?.trim().isEmpty == true) {
+                    return 'Please enter the private key';
+                  }
+                  if (value!.trim().length % 4 != 0) {
+                    return 'Private key length must be a multiple of 4';
+                  }
+                  return null;
+                },
                 onSaved: (value) => _privateKey = value!.trim(),
               ),
               const SizedBox(height: 16),
@@ -151,7 +172,7 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
 
               const SizedBox(height: 24),
               const SectionTitle(title: 'Appearance'),
-              const SizedBox(height: 16),
+              const SizedBox(height: 4),
 
               ListTile(
                 contentPadding: EdgeInsets.zero,
@@ -174,27 +195,6 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
                   ),
                 ),
                 onTap: _isSaving ? null : _showColorPicker,
-              ),
-
-              const SizedBox(height: 40),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: FilledButton.icon(
-                  onPressed: _isSaving ? null : _submit,
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.save),
-                  label: Text(_isSaving ? 'Saving...' : 'Save Item'),
-                ),
               ),
             ],
           ),

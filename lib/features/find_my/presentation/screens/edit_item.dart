@@ -183,6 +183,35 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
                   await ref
                       .read(itemExportServiceProvider)
                       .shareSingleItem(widget.item);
+                } else if (value == 'delete') {
+                  await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete Item?'),
+                      content: Text(
+                        'Are you sure you want to stop tracking "${widget.item.name}"?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                          onPressed: () => {
+                            ref
+                                .read(itemManagementViewModelProvider.notifier)
+                                .deleteItem(widget.item.id),
+                            Navigator.of(context).pop(true),
+                            Navigator.of(context).pop(true),
+                          },
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  );
                 }
               },
               itemBuilder: (BuildContext context) => [
@@ -203,6 +232,17 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
                       Icon(Icons.share),
                       SizedBox(width: 8),
                       Text('Share to App'),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete_forever, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('Delete item', style: TextStyle(color: Colors.red)),
                     ],
                   ),
                 ),

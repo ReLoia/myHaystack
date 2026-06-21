@@ -133,7 +133,7 @@ class _ItemManagementPageState extends ConsumerState<ItemManagementPage>
                     color: Colors.red,
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Icon(Icons.delete, color: Colors.white),
+                    child: const Icon(Icons.delete_forever, color: Colors.white),
                   ),
                   confirmDismiss: (direction) async {
                     return await showDialog<bool>(
