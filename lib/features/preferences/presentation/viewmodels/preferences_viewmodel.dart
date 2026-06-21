@@ -67,5 +67,5 @@ class PreferencesNotifier extends Notifier<PreferencesState> {
 
 final preferencesViewModelProvider =
     NotifierProvider<PreferencesNotifier, PreferencesState>(
-  () => PreferencesNotifier(),
-);
+      () => PreferencesNotifier(),
+    );

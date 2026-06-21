@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myhaystack/features/preferences/presentation/widgets/section_title.dart';
+
 import '../viewmodels/item_management_viewmodel.dart';
 
 class CreateItemPage extends ConsumerStatefulWidget {
@@ -29,12 +29,14 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
       setState(() => _isSaving = true);
 
       try {
-        await ref.read(itemManagementViewModelProvider.notifier).addItem(
-          name: _name,
-          privateKey: _privateKey,
-          color: _selectedColor.value,
-          emoji: _emoji,
-        );
+        await ref
+            .read(itemManagementViewModelProvider.notifier)
+            .addItem(
+              name: _name,
+              privateKey: _privateKey,
+              color: _selectedColor.value,
+              emoji: _emoji,
+            );
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -44,9 +46,9 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to add item: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to add item: $e')));
         }
       } finally {
         if (mounted) {
@@ -98,9 +100,7 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Add a new Item'),
-      ),
+      appBar: AppBar(title: const Text('Add a new Item')),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -119,8 +119,9 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
                   prefixIcon: Icon(Icons.label_outline),
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                value?.trim().isEmpty == true ? 'Please enter a name' : null,
+                validator: (value) => value?.trim().isEmpty == true
+                    ? 'Please enter a name'
+                    : null,
                 onSaved: (value) => _name = value!.trim(),
               ),
               const SizedBox(height: 16),
@@ -133,8 +134,9 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
                   prefixIcon: Icon(Icons.vpn_key_outlined),
                   border: OutlineInputBorder(),
                 ),
-                validator: (value) =>
-                value?.trim().isEmpty == true ? 'Please enter the private key' : null,
+                validator: (value) => value?.trim().isEmpty == true
+                    ? 'Please enter the private key'
+                    : null,
                 onSaved: (value) => _privateKey = value!.trim(),
               ),
               const SizedBox(height: 16),
@@ -187,9 +189,13 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
                   onPressed: _isSaving ? null : _submit,
                   icon: _isSaving
                       ? const SizedBox(
-                      width: 20, height: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                  )
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Icon(Icons.save),
                   label: Text(_isSaving ? 'Saving...' : 'Save Item'),
                 ),

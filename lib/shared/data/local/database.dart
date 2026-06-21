@@ -52,10 +52,7 @@ class AppDatabase extends _$AppDatabase {
           privateKey: row.read<String>('private_key'),
           color: row.read<int>('color'),
           emoji: row.read<String?>('emoji'),
-          currLocation: LatLng(
-            lat ?? 0.0,
-            lng ?? 0.0,
-          ),
+          currLocation: LatLng(lat ?? 0.0, lng ?? 0.0),
           accuracy: row.read<int?>('accuracy'),
           lastSeen: row.read<DateTime?>('timestamp'),
           batteryStatus: row.read<int?>('battery_status'),

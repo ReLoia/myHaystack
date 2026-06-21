@@ -8,11 +8,7 @@ class TagMarker extends StatelessWidget {
   final TrackedItem item;
   final bool isSelected;
 
-  const TagMarker({
-    super.key,
-    required this.item,
-    required this.isSelected,
-  });
+  const TagMarker({super.key, required this.item, required this.isSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +32,9 @@ class TagMarker extends StatelessWidget {
           ),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black26,
-                blurRadius: 6,
-                offset: Offset(1.5, 1.5)
+              color: Colors.black26,
+              blurRadius: 6,
+              offset: Offset(1.5, 1.5),
             ),
           ],
         ),
@@ -46,19 +42,19 @@ class TagMarker extends StatelessWidget {
         child: Transform.rotate(
           angle: math.pi / 4,
           child: CircleAvatar(
-            backgroundColor: isSelected
-                ? itemColor
-                : colors.secondaryContainer,
+            backgroundColor: isSelected ? itemColor : colors.secondaryContainer,
             child: item.emoji != null && item.emoji!.trim().isNotEmpty
                 ? Text(
-              item.emoji!,
-              style: TextStyle(fontSize: isSelected ? 22 : 14),
-            )
+                    item.emoji!,
+                    style: TextStyle(fontSize: isSelected ? 22 : 14),
+                  )
                 : Icon(
-              Icons.location_on,
-              color: isSelected ? Colors.white : colors.onSecondaryContainer,
-              size: isSelected ? 26 : 18,
-            ),
+                    Icons.location_on,
+                    color: isSelected
+                        ? Colors.white
+                        : colors.onSecondaryContainer,
+                    size: isSelected ? 26 : 18,
+                  ),
           ),
         ),
       ),

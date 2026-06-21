@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/utils/logger.dart';
 import '../../../../shared/domain/entities/tracked_item.dart';
 import '../../../../shared/presentation/providers/app_providers.dart';
 
@@ -59,7 +60,7 @@ class MapViewModel extends StreamNotifier<MapState> {
       final syncUseCase = ref.read(syncLocationsUseCaseProvider);
       syncedCount = await syncUseCase();
     } catch (e) {
-      print("Sync error: $e");
+      Logger.error("Sync error: $e", prefix: "MapViewModel");
     } finally {
       if (state.value != null) {
         state = AsyncData(state.value!.copyWith(isSyncing: false));

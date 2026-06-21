@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -10,12 +9,11 @@ class AddItemFAB extends ConsumerStatefulWidget {
   final AnimationController animationController;
   final Function() toggleMenu;
 
-
   const AddItemFAB({
     super.key,
     required this.isMenuOpen,
     required this.animationController,
-    required this.toggleMenu
+    required this.toggleMenu,
   });
 
   @override
@@ -27,7 +25,6 @@ class _AddItemFABState extends ConsumerState<AddItemFAB>
   late Animation<double> _expandAnimation;
   late Animation<double> _rotateAnimation;
 
-
   @override
   void initState() {
     super.initState();
@@ -38,7 +35,10 @@ class _AddItemFABState extends ConsumerState<AddItemFAB>
     );
 
     _rotateAnimation = Tween<double>(begin: 0.0, end: 0.375).animate(
-      CurvedAnimation(parent: widget.animationController, curve: Curves.easeInOut),
+      CurvedAnimation(
+        parent: widget.animationController,
+        curve: Curves.easeInOut,
+      ),
     );
   }
 

@@ -63,17 +63,19 @@ class ItemImportService {
           );
         } catch (_) {}
 
-        items.add(TrackedItem(
-          id: const Uuid().v4(),
-          name: item['name']?.toString() ?? 'Imported Item',
-          privateKey: privateKey,
-          color: color.toARGB32(),
-          emoji: item['emoji']?.toString(),
-          currLocation: const LatLng(0, 0),
-          accuracy: null,
-          batteryStatus: null,
-          lastSeen: null,
-        ));
+        items.add(
+          TrackedItem(
+            id: const Uuid().v4(),
+            name: item['name']?.toString() ?? 'Imported Item',
+            privateKey: privateKey,
+            color: color.toARGB32(),
+            emoji: item['emoji']?.toString(),
+            currLocation: const LatLng(0, 0),
+            accuracy: null,
+            batteryStatus: null,
+            lastSeen: null,
+          ),
+        );
       }
 
       return items;

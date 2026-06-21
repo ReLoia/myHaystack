@@ -18,10 +18,6 @@ class LocationReportModel {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'payload': payload,
-      'statusCode': statusCode,
-    };
+    return {'id': id, 'payload': payload, 'statusCode': statusCode};
   }
 }

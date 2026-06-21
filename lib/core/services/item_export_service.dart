@@ -13,17 +13,12 @@ class ItemExportService {
 
       return {
         "id": item.id,
-        "colorComponents": [
-          color.r,
-          color.g,
-          color.b,
-          color.a,
-        ],
+        "colorComponents": [color.r, color.g, color.b, color.a],
         "name": item.name,
         "privateKey": item.privateKey,
         "icon": "tortoise.fill",
         "isActive": true,
-        "additionalKeys": []
+        "additionalKeys": [],
       };
     }).toList();
 

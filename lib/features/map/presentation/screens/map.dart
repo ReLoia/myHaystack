@@ -195,11 +195,15 @@ class _MapPageState extends ConsumerState<MapPage>
                           final bool shouldShowCircle =
                               currentZoom > 8 && radiusInMeters > 5;
 
-                          final itemColorScheme = item.getColorScheme(Theme.of(context).brightness);
+                          final itemColorScheme = item.getColorScheme(
+                            Theme.of(context).brightness,
+                          );
 
                           return CircleMarker(
                             point: item.currLocation,
-                            color: itemColorScheme.primary.withValues(alpha: 0.15),
+                            color: itemColorScheme.primary.withValues(
+                              alpha: 0.15,
+                            ),
                             borderColor: itemColorScheme.primary.withValues(
                               alpha: 0.5,
                             ),

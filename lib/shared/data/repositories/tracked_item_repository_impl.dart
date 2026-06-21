@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../../../core/services/macless_haystack_api_service.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/utils/findmy_crypto_utils.dart';
+import '../../../core/utils/logger.dart';
 import '../../domain/entities/tracked_item.dart' as domain;
 import '../../domain/entities/tracked_item.dart';
 import '../../domain/repositories/tracked_item_repository.dart';
@@ -104,15 +105,19 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
         );
         hashedKeyToItem[hashedKey] = item;
       } catch (e) {
-        print(
+        Logger.error(
           "Skipping item '${item.name}' (ID: ${item.id}): Invalid private key format.",
+          prefix: "TrackedItemRepository",
         );
         continue;
       }
     }
 
     if (hashedKeyToItem.isEmpty) {
-      print("No valid keys found to sync.");
+      Logger.info(
+        "No valid keys found to sync.",
+        prefix: "TrackedItemRepository",
+      );
       return 0;
     }
 

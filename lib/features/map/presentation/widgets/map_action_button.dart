@@ -22,14 +22,20 @@ class MapActionButton extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.15),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.15),
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: IconButton(
-        icon: Icon(icon, size: size * 0.5, color: Theme.of(context).colorScheme.onSurface),
+        icon: Icon(
+          icon,
+          size: size * 0.5,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
         onPressed: onPressed,
         padding: EdgeInsets.zero,
         constraints: const BoxConstraints(),

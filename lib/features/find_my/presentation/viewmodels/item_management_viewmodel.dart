@@ -25,19 +25,19 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
 
     final String generatedId = const Uuid().v4();
 
-    final newItem = TrackedItem(
-      id: generatedId,
-      name: name,
-      privateKey: privateKey,
-      color: color,
-      currLocation: const LatLng(0, 0),
-      emoji: emoji?.isNotEmpty == true ? emoji : null,
-      accuracy: null,
-      batteryStatus: null,
-      lastSeen: null,
+    await repo.addTrackedItem(
+      TrackedItem(
+        id: generatedId,
+        name: name,
+        privateKey: privateKey,
+        color: color,
+        currLocation: const LatLng(0, 0),
+        emoji: emoji?.isNotEmpty == true ? emoji : null,
+        accuracy: null,
+        batteryStatus: null,
+        lastSeen: null,
+      ),
     );
-
-    await repo.addTrackedItem(newItem);
   }
 
   Future<void> updateItem(TrackedItem item) async {

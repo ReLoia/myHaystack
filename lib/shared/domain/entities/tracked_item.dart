@@ -31,6 +31,9 @@ class TrackedItem {
   }
 
   ColorScheme getColorScheme(Brightness brightness) {
-    return ColorScheme.fromSeed(seedColor: Color(color), brightness: brightness);
+    return ColorScheme.fromSeed(
+      seedColor: Color(color),
+      brightness: brightness,
+    );
   }
 }

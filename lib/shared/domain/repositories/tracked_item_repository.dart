@@ -12,7 +12,10 @@ abstract class TrackedItemRepository {
 
   Future<void> deleteTrackedItem(String itemId);
 
-  Future<void> saveNewLocation(String trackedItemId, DecryptedLocationModel decrypted);
+  Future<void> saveNewLocation(
+    String trackedItemId,
+    DecryptedLocationModel decrypted,
+  );
 
   Future<int> syncLocationsWithServer();
 }
