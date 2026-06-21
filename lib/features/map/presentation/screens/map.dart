@@ -30,6 +30,21 @@ class _MapPageState extends ConsumerState<MapPage>
 
   final PageController _pageController = PageController(viewportFraction: 0.85);
 
+  late final AnimationController _locationAnimController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 600),
+  );
+
+  // This fixes a weird bug with the AnimationController making the app crash. idk why
+  late final AnimationController _refreshAnimController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1000),
+  );
+
+  bool _isLocating = false;
+  bool _isSyncing = false;
+  int? _syncResult;
+
   void _onPageChanged(int index) {
     ref.read(mapViewModelProvider.notifier).updateIndex(index);
 
@@ -37,13 +52,88 @@ class _MapPageState extends ConsumerState<MapPage>
     if (state != null && state.items.isNotEmpty) {
       _animatedMapController.animateTo(
         dest: state.items[index].currLocation,
-        zoom: 15.0,
+        zoom: 18.0,
       );
+    }
+  }
+
+  Future<bool> _moveToUser() async {
+    if (_isLocating) return false;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _isLocating = true;
+        });
+        _locationAnimController.repeat(reverse: true);
+      }
+    });
+
+    final locationService = ref.read(locationServiceProvider);
+    final userPos = await locationService.getUserLocation();
+
+    if (userPos != null) {
+      _animatedMapController.animateTo(dest: userPos, zoom: 15.0);
+      await Future.delayed(const Duration(milliseconds: 750));
+    }
+
+    if (mounted) {
+      _locationAnimController.stop();
+      _locationAnimController.reset();
+      setState(() {
+        _isLocating = false;
+      });
+    }
+
+    return userPos != null;
+  }
+
+  Future<void> _syncLocations() async {
+    if (_isSyncing) return;
+    setState(() {
+      _isSyncing = true;
+      _syncResult = null;
+    });
+    _refreshAnimController.repeat();
+
+    try {
+      final int count = await ref
+          .read(mapViewModelProvider.notifier)
+          .syncLocations();
+
+      if (!mounted) return;
+      _refreshAnimController.stop();
+      _refreshAnimController.reset();
+
+      setState(() {
+        _syncResult = count;
+      });
+
+      await Future.delayed(const Duration(seconds: 2));
+
+      if (mounted) {
+        setState(() {
+          _syncResult = null;
+          _isSyncing = false;
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _refreshAnimController.stop();
+      _refreshAnimController.reset();
+      setState(() {
+        _isSyncing = false;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Sync failed: $e')));
     }
   }
 
   @override
   void dispose() {
+    _locationAnimController.dispose();
+    _refreshAnimController.dispose();
     _animatedMapController.dispose();
     _pageController.dispose();
     super.dispose();
@@ -92,22 +182,34 @@ class _MapPageState extends ConsumerState<MapPage>
                     subdomains: const ['a', 'b', 'c', 'd'],
                     userAgentPackageName: "it.reloia.myhaystack",
                   ),
-                  CircleLayer(
-                    circles: items.map((item) {
-                      final double radiusInMeters = (item.accuracy ?? 0).toDouble();
+                  Builder(
+                    builder: (context) {
+                      final camera = MapCamera.of(context);
+                      final currentZoom = camera.zoom;
 
-                      final currentZoom = _animatedMapController.mapController.camera.zoom;
-                      final bool shouldShowCircle = currentZoom > 8 && radiusInMeters > 5;
+                      return CircleLayer(
+                        circles: items.map((item) {
+                          final double radiusInMeters = (item.accuracy ?? 0)
+                              .toDouble();
 
-                      return CircleMarker(
-                        point: item.currLocation,
-                        color: colorScheme.primary.withValues(alpha: 0.15),
-                        borderColor: colorScheme.primary.withValues(alpha: 0.5),
-                        borderStrokeWidth: 1.5,
-                        radius: shouldShowCircle ? radiusInMeters : 0,
-                        useRadiusInMeter: true,
+                          final bool shouldShowCircle =
+                              currentZoom > 8 && radiusInMeters > 5;
+
+                          final itemColorScheme = item.getColorScheme(Theme.of(context).brightness);
+
+                          return CircleMarker(
+                            point: item.currLocation,
+                            color: itemColorScheme.primary.withValues(alpha: 0.15),
+                            borderColor: itemColorScheme.primary.withValues(
+                              alpha: 0.5,
+                            ),
+                            borderStrokeWidth: 1.5,
+                            radius: shouldShowCircle ? radiusInMeters : 0,
+                            useRadiusInMeter: true,
+                          );
+                        }).toList(),
                       );
-                    }).toList(),
+                    },
                   ),
                   MarkerLayer(
                     markers: [
@@ -140,7 +242,6 @@ class _MapPageState extends ConsumerState<MapPage>
                             final (index, item) = record;
                             return _buildMarker(item, false, index);
                           }),
-
                       if (items.isNotEmpty)
                         _buildMarker(items[currentIndex], true, currentIndex),
                     ],
@@ -165,29 +266,36 @@ class _MapPageState extends ConsumerState<MapPage>
                           onPressed: () {
                             Navigator.push(
                               context,
-                              MaterialPageRoute(builder: (_) => const SettingsPage()),
+                              MaterialPageRoute(
+                                builder: (_) => const SettingsPage(),
+                              ),
                             );
                           },
                         ),
-                        MapActionButton(
-                          icon: Icons.my_location,
-                          onPressed: () async {
-                            if (!await _moveToUser()) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Could not get user location'),
-                                ),
-                              );
-                            }
-                          },
-                          size: 38,
-                        ),
-                        MapActionButton(
-                          icon: Icons.refresh,
-                          onPressed: () async {
-                            ref.read(mapViewModelProvider.notifier).syncLocations();
-                          },
-                          size: 38,
+                        ScaleTransition(
+                          scale: Tween<double>(begin: 1.0, end: 1.15).animate(
+                            CurvedAnimation(
+                              parent: _locationAnimController,
+                              curve: Curves.easeInOut,
+                            ),
+                          ),
+                          child: MapActionButton(
+                            icon: Icons.my_location,
+                            onPressed: () async {
+                              if (!await _moveToUser()) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Could not get user location',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            size: 38,
+                          ),
                         ),
                         _buildAnimatedRefreshButton(colorScheme),
                       ],
@@ -316,16 +424,5 @@ class _MapPageState extends ConsumerState<MapPage>
       duration: const Duration(milliseconds: 500),
       curve: Curves.easeInOutCubic,
     );
-  }
-
-  Future<bool> _moveToUser() async {
-    final locationService = ref.read(locationServiceProvider);
-    final userPos = await locationService.getUserLocation();
-
-    if (userPos != null) {
-      _animatedMapController.animateTo(dest: userPos, zoom: 15.0);
-      return true;
-    }
-    return false;
   }
 }
