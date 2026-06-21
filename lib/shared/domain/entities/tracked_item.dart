@@ -36,4 +36,9 @@ class TrackedItem {
       brightness: brightness,
     );
   }
+
+  bool get isOffline {
+    if (lastSeen == null) return true;
+    return DateTime.now().difference(lastSeen!).inHours >= 6;
+  }
 }
