@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myhaystack/core/utils/time_utils.dart';
 
 import '../../../../shared/domain/entities/tracked_item.dart';
 
@@ -17,12 +18,8 @@ class TagCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final brightness = Theme.of(context).brightness;
-    final itemColor = Color(item.color);
 
-    final itemColorScheme = ColorScheme.fromSeed(
-      seedColor: itemColor,
-      brightness: brightness,
-    );
+    final itemColorScheme = item.getColorScheme(brightness);
 
     return GestureDetector(
       onTap: onTap,
@@ -54,12 +51,43 @@ class TagCard extends StatelessWidget {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        verticalDirection: VerticalDirection.up,
+                        children: [
+                          Text(
+                            item.name,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: itemColorScheme.onSurface,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          RotatedBox(
+                            quarterTurns: 1,
+                            child: Icon(
+                              switch (item.batteryStatus) {
+                                0 => Icons.battery_full_rounded,
+                                1 => Icons.battery_6_bar_rounded,
+                                2 => Icons.battery_3_bar_rounded,
+                                3 || _ => Icons.battery_alert_rounded,
+                              },
+                              color: switch (item.batteryStatus) {
+                                0 => Colors.green,
+                                1 => Colors.amber,
+                                2 => Colors.orange,
+                                3 || _ => Colors.red,
+                              },
+                              size: 22,
+                            ),
+                          ),
+                        ],
+                      ),
                       Text(
-                        item.name,
+                        item.lastSeen?.timeAgo() ?? 'Never seen',
                         style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: itemColorScheme.onSurface,
+                          fontSize: 12,
+                          color: itemColorScheme.onSurfaceVariant,
                         ),
                       ),
                       // TODO: use some api to get the address of the location and other data
@@ -68,24 +96,7 @@ class TagCard extends StatelessWidget {
                 ],
               ),
               const Spacer(),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: itemColorScheme.primary,
-                        foregroundColor: itemColorScheme.onPrimary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      onPressed: () {},
-                      icon: const Icon(Icons.volume_up, size: 18),
-                      label: const Text("Play Sound"),
-                    ),
-                  ),
-                ],
-              ),
+              Row(children: []),
             ],
           ),
         ),

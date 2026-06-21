@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
 class TrackedItem {
@@ -23,4 +24,13 @@ class TrackedItem {
     this.batteryStatus,
     this.lastSeen,
   });
+
+  @override
+  String toString() {
+    return 'TrackedItem(id: $id, name: $name, privateKey: $privateKey, color: $color, emoji: $emoji, currLocation: $currLocation, accuracy: $accuracy, batteryStatus: $batteryStatus, lastSeen: $lastSeen)';
+  }
+
+  ColorScheme getColorScheme(Brightness brightness) {
+    return ColorScheme.fromSeed(seedColor: Color(color), brightness: brightness);
+  }
 }
