@@ -91,7 +91,7 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
     final items = await _db.select(_db.trackedItems).get();
     if (items.isEmpty) return 0;
 
-    Map<String, TrackedItemDbData> hashedKeyToItem = {};
+    int totalSynced = 0;
 
     for (var item in items) {
       try {
@@ -103,53 +103,36 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
         final hashedKey = FindMyCryptoUtils.getHashedAdvKeyFromPrivateKey(
           normalizedKey,
         );
-        hashedKeyToItem[hashedKey] = item;
+
+        final List<LocationReportModel> results = await apiService
+            .fetchLocationReports(
+              hashedAdvertisementKeys: [hashedKey],
+              daysToFetch: _prefs.daysRetrieval,
+              serverUrl: _prefs.serverUrl,
+              username: _prefs.username,
+              password: _prefs.password,
+            );
+
+        for (var report in results) {
+          final decrypted = FindMyCryptoUtils.decryptReport(
+            report,
+            normalizedKey,
+          );
+
+          if (decrypted != null) {
+            saveNewLocation(item.id, decrypted);
+            totalSynced++;
+          }
+        }
       } catch (e) {
         Logger.error(
-          "Skipping item '${item.name}' (ID: ${item.id}): Invalid private key format.",
+          "Skipping item '${item.name}' (ID: ${item.id}) or sync failed: $e",
           prefix: "TrackedItemRepository",
         );
         continue;
       }
     }
 
-    if (hashedKeyToItem.isEmpty) {
-      Logger.info(
-        "No valid keys found to sync.",
-        prefix: "TrackedItemRepository",
-      );
-      return 0;
-    }
-
-    final List<LocationReportModel> results = await apiService
-        .fetchLocationReports(
-          hashedAdvertisementKeys: hashedKeyToItem.keys.toList(),
-          daysToFetch: _prefs.daysRetrieval,
-          serverUrl: _prefs.serverUrl,
-          username: _prefs.username,
-          password: _prefs.password,
-        );
-
-    for (var report in results) {
-      for (var item in hashedKeyToItem.values) {
-        String normalizedKey = item.privateKey;
-        while (normalizedKey.length % 4 != 0) {
-          normalizedKey += '=';
-        }
-
-        final decrypted = FindMyCryptoUtils.decryptReport(
-          report,
-          normalizedKey,
-        );
-
-        if (decrypted != null) {
-          saveNewLocation(item.id, decrypted);
-
-          break;
-        }
-      }
-    }
-
-    return results.length;
+    return totalSynced;
   }
 }

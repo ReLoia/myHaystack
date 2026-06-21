@@ -6,6 +6,7 @@ import 'package:dio/io.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../../shared/data/models/location_report_model.dart';
+import '../utils/logger.dart';
 
 class MaclessHaystackApiService {
   final Dio _dio;
@@ -30,7 +31,6 @@ class MaclessHaystackApiService {
     String? username,
     String? password,
   }) async {
-
     final headers = {"Content-Type": "application/json"};
 
     if (username != null && username.isNotEmpty) {
@@ -38,13 +38,15 @@ class MaclessHaystackApiService {
       headers['Authorization'] = 'Basic $authString';
     }
 
+    Logger.info(
+      "Request the location reports of ${hashedAdvertisementKeys.length} items",
+      prefix: "MaclessHaystack API Service",
+    );
+
     try {
       final response = await _dio.post(
         serverUrl,
-        data: {
-          "ids": hashedAdvertisementKeys,
-          "days": daysToFetch,
-        },
+        data: {"ids": hashedAdvertisementKeys, "days": daysToFetch},
         options: Options(headers: headers),
       );
 
@@ -55,14 +57,22 @@ class MaclessHaystackApiService {
           responseData = jsonDecode(responseData);
         }
 
-        final List<dynamic> resultsList = responseData["results"] as List<dynamic>? ?? [];
+        final List<dynamic> resultsList =
+            responseData["results"] as List<dynamic>? ?? [];
 
         final List<LocationReportModel> parsedReports = resultsList
-            .map((json) => LocationReportModel.fromJson(json as Map<String, dynamic>))
+            .map(
+              (json) =>
+                  LocationReportModel.fromJson(json as Map<String, dynamic>),
+            )
             .toList();
 
-        return parsedReports;
+        Logger.info(
+          "Got ${resultsList.length} results from the server",
+          prefix: "MaclessHaystack API Service",
+        );
 
+        return parsedReports;
       } else {
         throw Exception(
           "Failed to fetch reports. Status: ${response.statusCode}",
