@@ -16,7 +16,21 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration {
+    return MigrationStrategy(
+      onCreate: (Migrator m) async {
+        await m.createAll();
+      },
+      onUpgrade: (Migrator m, int from, int to) async {
+        if (from < 2) {
+          await m.addColumn(trackedItems, trackedItems.orderIndex);
+        }
+      },
+    );
+  }
 
   Stream<List<domain.TrackedItem>> watchItemsWithLatestLocation() {
     return customSelect(
@@ -27,6 +41,7 @@ class AppDatabase extends _$AppDatabase {
       t.private_key, 
       t.color, 
       t.emoji,
+      t.order_index,
       l.latitude, 
       l.longitude, 
       l.accuracy,
@@ -39,6 +54,7 @@ class AppDatabase extends _$AppDatabase {
       FROM location_points 
       WHERE tracked_item_id = t.id
     )
+    ORDER BY t.order_index ASC
     ''',
       readsFrom: {trackedItems, locationPoints},
     ).watch().map((rows) {
@@ -52,6 +68,7 @@ class AppDatabase extends _$AppDatabase {
           privateKey: row.read<String>('private_key'),
           color: row.read<int>('color'),
           emoji: row.read<String?>('emoji'),
+          orderIndex: row.read<int>('order_index'),
           currLocation: LatLng(lat ?? 0.0, lng ?? 0.0),
           accuracy: row.read<int?>('accuracy'),
           lastSeen: row.read<DateTime?>('timestamp'),
@@ -62,7 +79,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   Future<List<domain.TrackedItem>> getAllItemsWithLatestLocation() async {
-    final items = await select(trackedItems).get();
+    final items = await (select(trackedItems)..orderBy([(t) => OrderingTerm(expression: t.orderIndex)])).get();
     List<domain.TrackedItem> result = [];
 
     for (final item in items) {
@@ -85,6 +102,7 @@ class AppDatabase extends _$AppDatabase {
           privateKey: item.privateKey,
           color: item.color,
           emoji: item.emoji,
+          orderIndex: item.orderIndex,
           currLocation: latestLocation != null
               ? LatLng(latestLocation.latitude, latestLocation.longitude)
               : const LatLng(0, 0),

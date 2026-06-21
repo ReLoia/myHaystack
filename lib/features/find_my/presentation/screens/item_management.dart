@@ -1,13 +1,8 @@
-import 'dart:convert';
-import 'dart:io';
-
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myhaystack/features/find_my/presentation/widgets/add_item_fab.dart';
 
 import '../viewmodels/item_management_viewmodel.dart';
-import 'create_item.dart';
 import 'edit_item.dart';
 
 class ItemManagementPage extends ConsumerStatefulWidget {
@@ -81,10 +76,15 @@ class _ItemManagementPageState extends ConsumerState<ItemManagementPage>
               );
             }
 
-            return ListView.separated(
+            return ReorderableListView.builder(
               padding: const EdgeInsets.only(bottom: 80),
               itemCount: items.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
+              onReorderItem: (oldIndex, newIndex) {
+                ref
+                    .read(itemManagementViewModelProvider.notifier)
+                    .reorderItems(oldIndex, newIndex);
+              },
+              buildDefaultDragHandles: false,
               itemBuilder: (context, index) {
                 final item = items[index];
 
@@ -129,30 +129,47 @@ class _ItemManagementPageState extends ConsumerState<ItemManagementPage>
                       SnackBar(content: Text('${item.name} deleted')),
                     );
                   },
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    leading: CircleAvatar(
-                      backgroundColor: Color(item.color),
-                      child: Text(
-                        item.emoji ?? '',
-                        style: const TextStyle(fontSize: 20),
-                      ),
-                    ),
-                    title: Text(
-                      item.name,
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => EditItemPage(item: item),
+                  child: Column(
+                    children: [
+                      ListTile(
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
                         ),
-                      );
-                    },
+                        leading: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ReorderableDragStartListener(
+                              index: index,
+                              child: const Padding(
+                                padding: EdgeInsets.only(right: 16),
+                                child: Icon(Icons.drag_handle, color: Colors.grey),
+                              ),
+                            ),
+                            CircleAvatar(
+                              backgroundColor: Color(item.color),
+                              child: Text(
+                                item.emoji ?? '',
+                                style: const TextStyle(fontSize: 20),
+                              ),
+                            ),
+                          ],
+                        ),
+                        title: Text(
+                          item.name,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => EditItemPage(item: item),
+                            ),
+                          );
+                        },
+                      ),
+                      if (index < items.length - 1) const Divider(height: 1),
+                    ],
                   ),
                 );
               },

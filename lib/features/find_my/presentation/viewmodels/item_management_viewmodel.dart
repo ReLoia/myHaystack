@@ -25,6 +25,7 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
     final repo = ref.read(trackedItemRepositoryProvider);
 
     final String generatedId = const Uuid().v4();
+    final currentState = state.value ?? [];
 
     await repo.addTrackedItem(
       TrackedItem(
@@ -34,6 +35,7 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
         color: color,
         currLocation: const LatLng(0, 0),
         emoji: emoji?.isNotEmpty == true ? emoji : null,
+        orderIndex: currentState.length,
         accuracy: null,
         batteryStatus: null,
         lastSeen: null,
@@ -48,6 +50,20 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
     await repo.updateTrackedItem(item);
   }
 
+  Future<void> reorderItems(int oldIndex, int newIndex) async {
+    final currentState = state.value;
+    if (currentState == null || currentState.isEmpty) return;
+
+    final List<TrackedItem> items = List.from(currentState);
+    final TrackedItem item = items.removeAt(oldIndex);
+    items.insert(newIndex, item);
+
+    state = AsyncData(items);
+
+    final repo = ref.read(trackedItemRepositoryProvider);
+    await repo.reorderTrackedItems(items);
+  }
+
   Future<void> deleteItem(String itemId) async {
     final repo = ref.read(trackedItemRepositoryProvider);
     await repo.deleteTrackedItem(itemId);
@@ -59,9 +75,24 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
       final repo = ref.read(trackedItemRepositoryProvider);
 
       final newItems = await importService.pickAndParseJson();
+      final currentState = state.value ?? [];
+      int startIndex = currentState.length;
 
       for (final item in newItems) {
-        await repo.addTrackedItem(item);
+        await repo.addTrackedItem(
+          TrackedItem(
+            id: item.id,
+            name: item.name,
+            privateKey: item.privateKey,
+            color: item.color,
+            currLocation: item.currLocation,
+            emoji: item.emoji,
+            orderIndex: startIndex++,
+            accuracy: item.accuracy,
+            batteryStatus: item.batteryStatus,
+            lastSeen: item.lastSeen,
+          ),
+        );
       }
 
       if (newItems.isNotEmpty) {
@@ -78,9 +109,24 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
       final repo = ref.read(trackedItemRepositoryProvider);
 
       final newItems = importService.parseJsonContent(content);
+      final currentState = state.value ?? [];
+      int startIndex = currentState.length;
 
       for (final item in newItems) {
-        await repo.addTrackedItem(item);
+        await repo.addTrackedItem(
+          TrackedItem(
+            id: item.id,
+            name: item.name,
+            privateKey: item.privateKey,
+            color: item.color,
+            currLocation: item.currLocation,
+            emoji: item.emoji,
+            orderIndex: startIndex++,
+            accuracy: item.accuracy,
+            batteryStatus: item.batteryStatus,
+            lastSeen: item.lastSeen,
+          ),
+        );
       }
 
       if (newItems.isNotEmpty) {

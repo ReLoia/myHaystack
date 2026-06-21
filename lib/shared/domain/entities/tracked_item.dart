@@ -7,6 +7,7 @@ class TrackedItem {
   final String privateKey;
   final int color;
   final String? emoji;
+  final int orderIndex;
   final LatLng currLocation;
 
   final int? accuracy;
@@ -18,6 +19,7 @@ class TrackedItem {
     required this.name,
     required this.privateKey,
     required this.color,
+    this.orderIndex = 0,
     required this.currLocation,
     this.emoji,
     this.accuracy,
@@ -27,7 +29,7 @@ class TrackedItem {
 
   @override
   String toString() {
-    return 'TrackedItem(id: $id, name: $name, privateKey: $privateKey, color: $color, emoji: $emoji, currLocation: $currLocation, accuracy: $accuracy, batteryStatus: $batteryStatus, lastSeen: $lastSeen)';
+    return 'TrackedItem(id: $id, name: $name, privateKey: $privateKey, color: $color, emoji: $emoji, orderIndex: $orderIndex, currLocation: $currLocation, accuracy: $accuracy, batteryStatus: $batteryStatus, lastSeen: $lastSeen)';
   }
 
   ColorScheme getColorScheme(Brightness brightness) {

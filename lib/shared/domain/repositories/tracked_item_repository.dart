@@ -10,6 +10,8 @@ abstract class TrackedItemRepository {
 
   Future<void> updateTrackedItem(TrackedItem item);
 
+  Future<void> reorderTrackedItems(List<TrackedItem> items);
+
   Future<void> deleteTrackedItem(String itemId);
 
   Future<void> saveNewLocation(

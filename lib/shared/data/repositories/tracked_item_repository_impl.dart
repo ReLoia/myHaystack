@@ -39,6 +39,7 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
             privateKey: item.privateKey,
             color: item.color,
             emoji: item.emoji,
+            orderIndex: item.orderIndex,
           ),
           mode: InsertMode.replace,
         );
@@ -55,8 +56,30 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
             privateKey: item.privateKey,
             color: item.color,
             emoji: item.emoji,
+            orderIndex: item.orderIndex,
           ),
         );
+  }
+
+  @override
+  Future<void> reorderTrackedItems(List<domain.TrackedItem> items) async {
+    await _db.transaction(() async {
+      for (int i = 0; i < items.length; i++) {
+        final item = items[i];
+        await _db
+            .update(_db.trackedItems)
+            .replace(
+              TrackedItemDbData(
+                id: item.id,
+                name: item.name,
+                privateKey: item.privateKey,
+                color: item.color,
+                emoji: item.emoji,
+                orderIndex: i,
+              ),
+            );
+      }
+    });
   }
 
   @override

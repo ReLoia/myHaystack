@@ -7,6 +7,7 @@ class TrackedItems extends Table {
   TextColumn get privateKey => text()();
   IntColumn get color => integer()();
   TextColumn get emoji => text().nullable()();
+  IntColumn get orderIndex => integer().withDefault(const Constant(0))();
 
   @override
   Set<Column> get primaryKey => {id};

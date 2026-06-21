@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myhaystack/features/preferences/presentation/widgets/section_title.dart';
 import 'package:myhaystack/shared/domain/entities/tracked_item.dart';
+
 import '../viewmodels/item_management_viewmodel.dart';
 
 class EditItemPage extends ConsumerStatefulWidget {
@@ -46,6 +46,7 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
           color: _selectedColor.toARGB32(),
           currLocation: widget.item.currLocation,
           emoji: _emoji,
+          orderIndex: widget.item.orderIndex,
           accuracy: widget.item.accuracy,
           batteryStatus: widget.item.batteryStatus,
           lastSeen: widget.item.lastSeen,
