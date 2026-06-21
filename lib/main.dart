@@ -11,6 +11,7 @@ import 'package:myhaystack/shared/presentation/providers/app_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'features/find_my/presentation/viewmodels/item_management_viewmodel.dart';
+import 'features/map/presentation/viewmodels/map_viewmodel.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -66,6 +67,10 @@ class _AppLayoutState extends ConsumerState<AppLayout> {
   @override
   void initState() {
     super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(mapViewModelProvider.notifier).syncLocations();
+    });
 
     _intentDataStreamSubscription = FlutterSharingIntent.instance
         .getMediaStream()

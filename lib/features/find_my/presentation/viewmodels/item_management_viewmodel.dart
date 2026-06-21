@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:myhaystack/features/map/presentation/viewmodels/map_viewmodel.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../../core/services/item_export_service.dart';
@@ -38,6 +39,8 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
         lastSeen: null,
       ),
     );
+
+    ref.read(mapViewModelProvider.notifier).syncLocations();
   }
 
   Future<void> updateItem(TrackedItem item) async {
@@ -60,6 +63,10 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
       for (final item in newItems) {
         await repo.addTrackedItem(item);
       }
+
+      if (newItems.isNotEmpty) {
+        ref.read(mapViewModelProvider.notifier).syncLocations();
+      }
     } catch (e) {
       rethrow;
     }
@@ -74,6 +81,10 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
 
       for (final item in newItems) {
         await repo.addTrackedItem(item);
+      }
+
+      if (newItems.isNotEmpty) {
+        ref.read(mapViewModelProvider.notifier).syncLocations();
       }
     } catch (e) {
       rethrow;
