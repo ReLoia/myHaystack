@@ -23,6 +23,7 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
   late Color _selectedColor;
 
   bool _isSaving = false;
+  bool _hasChanges = false;
 
   @override
   void initState() {
@@ -57,9 +58,7 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
             .updateItem(updatedItem);
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Item updated successfully!')),
-          );
+          setState(() => _hasChanges = false);
           Navigator.of(context).pop();
         }
       } catch (e) {
@@ -101,7 +100,10 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
             FilledButton(
               child: const Text('Select'),
               onPressed: () {
-                setState(() => _selectedColor = tempColor);
+                setState(() {
+                  _selectedColor = tempColor;
+                  _hasChanges = true;
+                });
                 Navigator.of(context).pop();
               },
             ),
@@ -113,107 +115,161 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Edit Item')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SectionTitle(title: 'Item Details'),
-              const SizedBox(height: 16),
+    return PopScope(
+      canPop: !_hasChanges || _isSaving,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
 
-              TextFormField(
-                initialValue: _name,
-                enabled: !_isSaving,
-                decoration: const InputDecoration(
-                  labelText: 'Item Name',
-                  prefixIcon: Icon(Icons.label_outline),
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) => value?.trim().isEmpty == true
-                    ? 'Please enter a name'
-                    : null,
-                onSaved: (value) => _name = value!.trim(),
+        final action = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Unsaved Changes'),
+            content: const Text(
+              'You have unsaved changes. Would you like to save them before leaving?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop('discard'),
+                child: const Text('No, discard'),
               ),
-              const SizedBox(height: 16),
-
-              TextFormField(
-                initialValue: _emoji,
-                enabled: !_isSaving,
-                maxLength: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Emoji (Optional)',
-                  prefixIcon: Icon(Icons.emoji_emotions_outlined),
-                  border: OutlineInputBorder(),
-                ),
-                onSaved: (value) => _emoji = value?.trim(),
-              ),
-
-              const SizedBox(height: 24),
-              const SectionTitle(title: 'Appearance'),
-              const SizedBox(height: 16),
-
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const Text('Marker Color'),
-                subtitle: const Text('Tap to change the color'),
-                trailing: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: _selectedColor,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey.shade400, width: 2),
-                  ),
-                ),
-                onTap: _isSaving ? null : _showColorPicker,
-              ),
-
-              const SizedBox(height: 40),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: FilledButton.icon(
-                  onPressed: _isSaving ? null : _updateItem,
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.save),
-                  label: Text(_isSaving ? 'Updating...' : 'Save Changes'),
-                ),
-              ),
-
-              const SizedBox(height: 24),
-              const Divider(),
-              const SizedBox(height: 16),
-
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    // TODO: Navigate to the Location History page
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('History page coming soon!'),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.history),
-                  label: const Text('View Location History'),
-                ),
+              FilledButton(
+                onPressed: () => Navigator.of(context).pop('save'),
+                child: const Text('Yes, save'),
               ),
             ],
+          ),
+        );
+
+        if (action == 'discard') {
+          if (context.mounted) {
+            setState(() => _hasChanges = false);
+            Navigator.of(context).pop();
+          }
+        } else if (action == 'save') {
+          await _updateItem();
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('Edit Item'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.history),
+              tooltip: 'View Location History',
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('History page coming soon!')),
+                );
+              },
+            ),
+            IconButton(
+              icon: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.save),
+              tooltip: 'Save Changes',
+              onPressed: _isSaving ? null : _updateItem,
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) async {
+                if (value == 'export') {
+                  await ref
+                      .read(itemExportServiceProvider)
+                      .exportSingleItemToJson(widget.item);
+                } else if (value == 'share') {
+                  await ref
+                      .read(itemExportServiceProvider)
+                      .shareSingleItem(widget.item);
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem(
+                  value: 'export',
+                  child: Row(
+                    children: [
+                      Icon(Icons.save_alt),
+                      SizedBox(width: 8),
+                      Text('Save to Device'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'share',
+                  child: Row(
+                    children: [
+                      Icon(Icons.share),
+                      SizedBox(width: 8),
+                      Text('Share to App'),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SectionTitle(title: 'Item Details'),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  initialValue: _name,
+                  enabled: !_isSaving,
+                  decoration: const InputDecoration(
+                    labelText: 'Item Name',
+                    prefixIcon: Icon(Icons.label_outline),
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (_) => setState(() => _hasChanges = true),
+                  validator: (value) => value?.trim().isEmpty == true
+                      ? 'Please enter a name'
+                      : null,
+                  onSaved: (value) => _name = value!.trim(),
+                ),
+                const SizedBox(height: 16),
+
+                TextFormField(
+                  initialValue: _emoji,
+                  enabled: !_isSaving,
+                  maxLength: 12,
+                  decoration: const InputDecoration(
+                    labelText: 'Emoji (Optional)',
+                    prefixIcon: Icon(Icons.emoji_emotions_outlined),
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (_) => setState(() => _hasChanges = true),
+                  onSaved: (value) => _emoji = value?.trim(),
+                ),
+
+                const SizedBox(height: 24),
+                const SectionTitle(title: 'Appearance'),
+                const SizedBox(height: 4),
+
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Marker Color'),
+                  subtitle: const Text('Tap to change the color'),
+                  trailing: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _selectedColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.grey.shade400, width: 2),
+                    ),
+                  ),
+                  onTap: _isSaving ? null : _showColorPicker,
+                ),
+              ],
+            ),
           ),
         ),
       ),

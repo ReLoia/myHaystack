@@ -143,7 +143,7 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
 
               TextFormField(
                 enabled: !_isSaving,
-                maxLength: 2,
+                maxLength: 12,
                 decoration: const InputDecoration(
                   labelText: 'Emoji (Optional)',
                   hintText: '🎒',

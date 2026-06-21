@@ -49,7 +49,45 @@ class _ItemManagementPageState extends ConsumerState<ItemManagementPage>
     final itemsAsyncValue = ref.watch(itemManagementViewModelProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Manage Items')),
+      appBar: AppBar(
+        title: const Text('Manage Items'),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) async {
+              final items = ref.read(itemManagementViewModelProvider).value;
+              if (items == null || items.isEmpty) return;
+
+              if (value == 'export') {
+                await ref.read(itemExportServiceProvider).exportItemsToJson(items);
+              } else if (value == 'share') {
+                await ref.read(itemExportServiceProvider).shareItems(items);
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem(
+                value: 'export',
+                child: Row(
+                  children: [
+                    Icon(Icons.save_alt),
+                    SizedBox(width: 8),
+                    Text('Save to Device'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'share',
+                child: Row(
+                  children: [
+                    Icon(Icons.share),
+                    SizedBox(width: 8),
+                    Text('Share to App'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
 
       floatingActionButton: AddItemFAB(
         isMenuOpen: _isMenuOpen,
@@ -148,10 +186,18 @@ class _ItemManagementPageState extends ConsumerState<ItemManagementPage>
                             ),
                             CircleAvatar(
                               backgroundColor: Color(item.color),
-                              child: Text(
-                                item.emoji ?? '',
-                                style: const TextStyle(fontSize: 20),
-                              ),
+                              child: item.emoji != null && item.emoji!.isNotEmpty
+                                  ? Padding(
+                                      padding: const EdgeInsets.all(4.0),
+                                      child: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Text(
+                                          item.emoji!,
+                                          style: const TextStyle(fontSize: 20),
+                                        ),
+                                      ),
+                                    )
+                                  : null,
                             ),
                           ],
                         ),

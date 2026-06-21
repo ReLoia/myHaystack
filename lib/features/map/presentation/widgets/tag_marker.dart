@@ -47,10 +47,16 @@ class TagMarker extends StatelessWidget {
               child: CircleAvatar(
                 backgroundColor: isSelected ? itemColor : colors.secondaryContainer,
                 child: item.emoji != null && item.emoji!.trim().isNotEmpty
-                    ? Text(
-                  item.emoji!,
-                  style: TextStyle(fontSize: isSelected ? 22 : 14),
-                )
+                    ? Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            item.emoji!,
+                            style: TextStyle(fontSize: isSelected ? 22 : 14),
+                          ),
+                        ),
+                      )
                     : Icon(
                   Icons.location_on,
                   color: isSelected

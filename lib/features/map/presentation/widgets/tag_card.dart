@@ -78,9 +78,15 @@ class TagCard extends ConsumerWidget {
                     CircleAvatar(
                       backgroundColor: itemColorScheme.primaryContainer,
                       child: hasEmoji
-                          ? Text(
-                              item.emoji!,
-                              style: const TextStyle(fontSize: 20),
+                          ? Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  item.emoji!,
+                                  style: const TextStyle(fontSize: 20),
+                                ),
+                              ),
                             )
                           : Icon(
                               Icons.location_on,
