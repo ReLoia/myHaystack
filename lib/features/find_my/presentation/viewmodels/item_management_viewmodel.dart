@@ -27,10 +27,16 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
     final keyStorage = ref.read(keyStorageServiceProvider);
 
     final String publicKey = FindMyCryptoUtils.getHashedPublicKeyFromPrivateKey(privateKey);
+    
+    final currentState = state.value ?? [];
+    final bool alreadyExists = currentState.any((item) => item.publicKey == publicKey);
+    if (alreadyExists) {
+      throw Exception('An item with this key already exists.');
+    }
+
     await keyStorage.savePrivateKey(publicKey, privateKey);
 
     final String generatedId = const Uuid().v4();
-    final currentState = state.value ?? [];
 
     await repo.addTrackedItem(
       TrackedItem(
@@ -87,13 +93,20 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
       final importService = ref.read(itemImportServiceProvider);
       
       final newItems = await importService.pickAndParseJson();
+      final currentState = state.value ?? [];
+      final existingKeys = currentState.map((e) => e.publicKey).toSet();
+
       for (final item in newItems) {
+        final publicKey = FindMyCryptoUtils.getHashedPublicKeyFromPrivateKey(item.privateKey);
+        if (existingKeys.contains(publicKey)) continue;
+
         await addItem(
           name: item.name,
           privateKey: item.privateKey,
           color: item.color,
           emoji: item.emoji,
         );
+        existingKeys.add(publicKey);
       }
     } catch (e) {
       rethrow;
@@ -105,13 +118,20 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
       final importService = ref.read(itemImportServiceProvider);
       
       final newItems = importService.parseJsonContent(content);
+      final currentState = state.value ?? [];
+      final existingKeys = currentState.map((e) => e.publicKey).toSet();
+
       for (final item in newItems) {
+        final publicKey = FindMyCryptoUtils.getHashedPublicKeyFromPrivateKey(item.privateKey);
+        if (existingKeys.contains(publicKey)) continue;
+
         await addItem(
           name: item.name,
           privateKey: item.privateKey,
           color: item.color,
           emoji: item.emoji,
         );
+        existingKeys.add(publicKey);
       }
     } catch (e) {
       rethrow;

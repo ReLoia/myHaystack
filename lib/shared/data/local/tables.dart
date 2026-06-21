@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 class TrackedItems extends Table {
   TextColumn get id => text()();
   TextColumn get name => text()();
-  TextColumn get publicKey => text()();
+  TextColumn get publicKey => text().unique()();
   IntColumn get color => integer()();
   TextColumn get emoji => text().nullable()();
   IntColumn get orderIndex => integer().withDefault(const Constant(0))();

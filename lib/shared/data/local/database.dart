@@ -16,7 +16,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -27,6 +27,9 @@ class AppDatabase extends _$AppDatabase {
       onUpgrade: (Migrator m, int from, int to) async {
         if (from < 2) {
           await m.addColumn(trackedItems, trackedItems.orderIndex);
+        }
+        if (from < 3) {
+          await m.alterTable(TableMigration(trackedItems));
         }
       },
     );

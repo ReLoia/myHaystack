@@ -163,9 +163,6 @@ class _ItemManagementPageState extends ConsumerState<ItemManagementPage>
                     ref
                         .read(itemManagementViewModelProvider.notifier)
                         .deleteItem(item.id);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${item.name} deleted')),
-                    );
                   },
                   child: Column(
                     children: [

@@ -39,9 +39,6 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
             );
 
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Item added successfully!')),
-          );
           Navigator.of(context).pop();
         }
       } catch (e) {
@@ -59,7 +56,6 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
   }
 
   void _showColorPicker() {
-    // Store the color temporarily in case the user cancels the dialog
     Color tempColor = _selectedColor;
 
     showDialog(
@@ -71,11 +67,11 @@ class CreateItemPageState extends ConsumerState<CreateItemPage> {
             child: ColorPicker(
               pickerColor: tempColor,
               onColorChanged: (Color color) {
-                tempColor = color; // Update temp color while sliding
+                tempColor = color;
               },
-              enableAlpha: false, // Prevents transparent map markers
+              enableAlpha: false,
               displayThumbColor: true,
-              hexInputBar: true, // Shows the hex input field
+              hexInputBar: true,
               pickerAreaHeightPercent: 0.8,
             ),
           ),

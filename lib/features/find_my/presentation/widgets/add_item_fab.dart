@@ -127,11 +127,6 @@ class _AddItemFABState extends ConsumerState<AddItemFAB>
   Future<void> _handleImportJson() async {
     try {
       await ref.read(itemManagementViewModelProvider.notifier).importItems();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Items imported successfully')),
-        );
-      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

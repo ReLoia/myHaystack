@@ -42,7 +42,7 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
             emoji: item.emoji,
             orderIndex: item.orderIndex,
           ),
-          mode: InsertMode.replace,
+          mode: InsertMode.insert,
         );
   }
 
