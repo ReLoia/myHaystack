@@ -189,6 +189,7 @@ class _MapPageState extends ConsumerState<MapPage>
                           },
                           size: 38,
                         ),
+                        _buildAnimatedRefreshButton(colorScheme),
                       ],
                     ),
                   ],
@@ -223,6 +224,71 @@ class _MapPageState extends ConsumerState<MapPage>
           );
         },
       ),
+    );
+  }
+
+  Widget _buildAnimatedRefreshButton(ColorScheme colorScheme) {
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 300),
+      transitionBuilder: (child, animation) =>
+          ScaleTransition(scale: animation, child: child),
+      child: _syncResult != null
+          ? Container(
+              key: const ValueKey('text'),
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.9),
+                shape: BoxShape.circle,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  '+$_syncResult',
+                  style: TextStyle(
+                    color: colorScheme.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+            )
+          : Container(
+              key: const ValueKey('icon'),
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: colorScheme.surface.withValues(alpha: 0.9),
+                shape: BoxShape.circle,
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: _isSyncing ? null : _syncLocations,
+                  child: Center(
+                    child: RotationTransition(
+                      turns: _refreshAnimController,
+                      child: const Icon(Icons.refresh, size: 22),
+                    ),
+                  ),
+                ),
+              ),
+            ),
     );
   }
 

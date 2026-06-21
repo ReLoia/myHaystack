@@ -48,14 +48,16 @@ class MapViewModel extends StreamNotifier<MapState> {
     });
   }
 
-  Future<void> syncLocations() async {
+  Future<int> syncLocations() async {
     if (state.value != null) {
       state = AsyncData(state.value!.copyWith(isSyncing: true));
     }
 
+    int syncedCount = 0;
+
     try {
       final syncUseCase = ref.read(syncLocationsUseCaseProvider);
-      await syncUseCase();
+      syncedCount = await syncUseCase();
     } catch (e) {
       print("Sync error: $e");
     } finally {
@@ -63,6 +65,8 @@ class MapViewModel extends StreamNotifier<MapState> {
         state = AsyncData(state.value!.copyWith(isSyncing: false));
       }
     }
+
+    return syncedCount;
   }
 
   void updateIndex(int index) {
@@ -74,5 +78,5 @@ class MapViewModel extends StreamNotifier<MapState> {
 }
 
 final mapViewModelProvider = StreamNotifierProvider<MapViewModel, MapState>(
-      () => MapViewModel(),
+  () => MapViewModel(),
 );

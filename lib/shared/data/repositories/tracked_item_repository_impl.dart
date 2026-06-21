@@ -1,5 +1,4 @@
 import 'package:drift/drift.dart';
-import 'package:latlong2/latlong.dart';
 
 import '../../../core/services/macless_haystack_api_service.dart';
 import '../../../core/services/preferences_service.dart';
@@ -8,6 +7,7 @@ import '../../domain/entities/tracked_item.dart' as domain;
 import '../../domain/entities/tracked_item.dart';
 import '../../domain/repositories/tracked_item_repository.dart';
 import '../local/database.dart';
+import '../models/decrypted_location_model.dart';
 import '../models/location_report_model.dart';
 
 class TrackedItemRepositoryImpl implements TrackedItemRepository {
@@ -66,23 +66,29 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
   }
 
   @override
-  Future<void> saveNewLocation(String trackedItemId, LatLng location) async {
+  Future<void> saveNewLocation(
+    String trackedItemId,
+    DecryptedLocationModel decrypted,
+  ) async {
     await _db
         .into(_db.locationPoints)
         .insert(
           LocationPointsCompanion.insert(
             trackedItemId: trackedItemId,
-            latitude: location.latitude,
-            longitude: location.longitude,
-            timestamp: DateTime.now(),
+            latitude: decrypted.latitude,
+            longitude: decrypted.longitude,
+            timestamp: decrypted.timestamp,
+            accuracy: Value(decrypted.accuracy),
+            batteryStatus: Value(decrypted.batteryStatus),
           ),
+          mode: InsertMode.insertOrIgnore,
         );
   }
 
   @override
-  Future<void> syncLocationsWithServer() async {
+  Future<int> syncLocationsWithServer() async {
     final items = await _db.select(_db.trackedItems).get();
-    if (items.isEmpty) return;
+    if (items.isEmpty) return 0;
 
     Map<String, TrackedItemDbData> hashedKeyToItem = {};
 
@@ -107,7 +113,7 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
 
     if (hashedKeyToItem.isEmpty) {
       print("No valid keys found to sync.");
-      return;
+      return 0;
     }
 
     final List<LocationReportModel> results = await apiService
@@ -132,23 +138,13 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
         );
 
         if (decrypted != null) {
-          await _db
-              .into(_db.locationPoints)
-              .insert(
-                LocationPointsCompanion.insert(
-                  trackedItemId: item.id,
-                  latitude: decrypted.latitude,
-                  longitude: decrypted.longitude,
-                  timestamp: decrypted.timestamp,
-                  accuracy: Value(decrypted.accuracy),
-                  batteryStatus: Value(decrypted.batteryStatus),
-                ),
-                mode: InsertMode.insertOrIgnore,
-              );
+          saveNewLocation(item.id, decrypted);
 
           break;
         }
       }
     }
+
+    return results.length;
   }
 }

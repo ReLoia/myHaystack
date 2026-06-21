@@ -5,7 +5,7 @@ class SyncLocationsUseCase {
 
   SyncLocationsUseCase(this.repository);
 
-  Future<void> call() async {
+  Future<int> call() async {
     return await repository.syncLocationsWithServer();
   }
 }

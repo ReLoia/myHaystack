@@ -1,5 +1,4 @@
-import 'package:latlong2/latlong.dart';
-
+import '../../data/models/decrypted_location_model.dart';
 import '../entities/tracked_item.dart';
 
 abstract class TrackedItemRepository {
@@ -13,7 +12,7 @@ abstract class TrackedItemRepository {
 
   Future<void> deleteTrackedItem(String itemId);
 
-  Future<void> saveNewLocation(String trackedItemId, LatLng location);
+  Future<void> saveNewLocation(String trackedItemId, DecryptedLocationModel decrypted);
 
-  Future<void> syncLocationsWithServer();
+  Future<int> syncLocationsWithServer();
 }
