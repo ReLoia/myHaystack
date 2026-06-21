@@ -7,6 +7,7 @@ import 'package:uuid/uuid.dart';
 
 import '../../../../core/services/item_export_service.dart';
 import '../../../../core/services/item_import_service.dart';
+import '../../../../core/utils/findmy_crypto_utils.dart';
 import '../../../../shared/domain/entities/tracked_item.dart';
 import '../../../../shared/presentation/providers/app_providers.dart';
 
@@ -23,6 +24,10 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
     String? emoji,
   }) async {
     final repo = ref.read(trackedItemRepositoryProvider);
+    final keyStorage = ref.read(keyStorageServiceProvider);
+
+    final String publicKey = FindMyCryptoUtils.getHashedPublicKeyFromPrivateKey(privateKey);
+    await keyStorage.savePrivateKey(publicKey, privateKey);
 
     final String generatedId = const Uuid().v4();
     final currentState = state.value ?? [];
@@ -31,7 +36,7 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
       TrackedItem(
         id: generatedId,
         name: name,
-        privateKey: privateKey,
+        publicKey: publicKey,
         color: color,
         currLocation: const LatLng(0, 0),
         emoji: emoji?.isNotEmpty == true ? emoji : null,
@@ -66,37 +71,29 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
 
   Future<void> deleteItem(String itemId) async {
     final repo = ref.read(trackedItemRepositoryProvider);
+    final currentState = state.value;
+    
+    if (currentState != null) {
+      final itemToDelete = currentState.firstWhere((item) => item.id == itemId);
+      final keyStorage = ref.read(keyStorageServiceProvider);
+      await keyStorage.deletePrivateKey(itemToDelete.publicKey);
+    }
+    
     await repo.deleteTrackedItem(itemId);
   }
 
   Future<void> importItems() async {
     try {
       final importService = ref.read(itemImportServiceProvider);
-      final repo = ref.read(trackedItemRepositoryProvider);
-
+      
       final newItems = await importService.pickAndParseJson();
-      final currentState = state.value ?? [];
-      int startIndex = currentState.length;
-
       for (final item in newItems) {
-        await repo.addTrackedItem(
-          TrackedItem(
-            id: item.id,
-            name: item.name,
-            privateKey: item.privateKey,
-            color: item.color,
-            currLocation: item.currLocation,
-            emoji: item.emoji,
-            orderIndex: startIndex++,
-            accuracy: item.accuracy,
-            batteryStatus: item.batteryStatus,
-            lastSeen: item.lastSeen,
-          ),
+        await addItem(
+          name: item.name,
+          privateKey: item.privateKey,
+          color: item.color,
+          emoji: item.emoji,
         );
-      }
-
-      if (newItems.isNotEmpty) {
-        ref.read(mapViewModelProvider.notifier).syncLocations();
       }
     } catch (e) {
       rethrow;
@@ -106,31 +103,15 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
   Future<void> importJsonContent(String content) async {
     try {
       final importService = ref.read(itemImportServiceProvider);
-      final repo = ref.read(trackedItemRepositoryProvider);
-
+      
       final newItems = importService.parseJsonContent(content);
-      final currentState = state.value ?? [];
-      int startIndex = currentState.length;
-
       for (final item in newItems) {
-        await repo.addTrackedItem(
-          TrackedItem(
-            id: item.id,
-            name: item.name,
-            privateKey: item.privateKey,
-            color: item.color,
-            currLocation: item.currLocation,
-            emoji: item.emoji,
-            orderIndex: startIndex++,
-            accuracy: item.accuracy,
-            batteryStatus: item.batteryStatus,
-            lastSeen: item.lastSeen,
-          ),
+        await addItem(
+          name: item.name,
+          privateKey: item.privateKey,
+          color: item.color,
+          emoji: item.emoji,
         );
-      }
-
-      if (newItems.isNotEmpty) {
-        ref.read(mapViewModelProvider.notifier).syncLocations();
       }
     } catch (e) {
       rethrow;

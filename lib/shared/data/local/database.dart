@@ -38,7 +38,7 @@ class AppDatabase extends _$AppDatabase {
     SELECT 
       t.id, 
       t.name, 
-      t.private_key, 
+      t.public_key, 
       t.color, 
       t.emoji,
       t.order_index,
@@ -65,7 +65,7 @@ class AppDatabase extends _$AppDatabase {
         return domain.TrackedItem(
           id: row.read<String>('id'),
           name: row.read<String>('name'),
-          privateKey: row.read<String>('private_key'),
+          publicKey: row.read<String>('public_key'),
           color: row.read<int>('color'),
           emoji: row.read<String?>('emoji'),
           orderIndex: row.read<int>('order_index'),
@@ -99,7 +99,7 @@ class AppDatabase extends _$AppDatabase {
         domain.TrackedItem(
           id: item.id,
           name: item.name,
-          privateKey: item.privateKey,
+          publicKey: item.publicKey,
           color: item.color,
           emoji: item.emoji,
           orderIndex: item.orderIndex,

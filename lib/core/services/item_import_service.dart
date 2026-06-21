@@ -3,13 +3,11 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:uuid/uuid.dart';
 
-import '../../../../shared/domain/entities/tracked_item.dart';
+import '../../shared/domain/entities/imported_item.dart';
 
 class ItemImportService {
-  Future<List<TrackedItem>> pickAndParseJson() async {
+  Future<List<ImportedItem>> pickAndParseJson() async {
     FilePickerResult? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
@@ -22,7 +20,7 @@ class ItemImportService {
     return parseJsonContent(content);
   }
 
-  List<TrackedItem> parseJsonContent(String content) {
+  List<ImportedItem> parseJsonContent(String content) {
     try {
       final dynamic decoded = jsonDecode(content);
 
@@ -39,7 +37,7 @@ class ItemImportService {
         return [];
       }
 
-      final List<TrackedItem> items = [];
+      final List<ImportedItem> items = [];
 
       for (final item in jsonData) {
         if (item is! Map<String, dynamic>) continue;
@@ -64,16 +62,11 @@ class ItemImportService {
         } catch (_) {}
 
         items.add(
-          TrackedItem(
-            id: const Uuid().v4(),
+          ImportedItem(
             name: item['name']?.toString() ?? 'Imported Item',
             privateKey: privateKey,
             color: color.toARGB32(),
             emoji: item['emoji']?.toString(),
-            currLocation: const LatLng(0, 0),
-            accuracy: null,
-            batteryStatus: null,
-            lastSeen: null,
           ),
         );
       }

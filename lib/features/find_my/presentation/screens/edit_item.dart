@@ -42,7 +42,7 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
         final updatedItem = TrackedItem(
           id: widget.item.id,
           name: _name,
-          privateKey: widget.item.privateKey,
+          publicKey: widget.item.publicKey,
           color: _selectedColor.toARGB32(),
           currLocation: widget.item.currLocation,
           emoji: _emoji,

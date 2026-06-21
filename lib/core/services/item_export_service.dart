@@ -3,24 +3,32 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/domain/entities/tracked_item.dart';
 
 class ItemExportService {
-  Future<bool> exportItemsToJson(List<TrackedItem> items) async {
-    final List<Map<String, dynamic>> jsonData = items.map((item) {
-      final color = Color(item.color);
+  final Ref _ref;
 
-      return {
+  ItemExportService(this._ref);
+
+  Future<bool> exportItemsToJson(List<TrackedItem> items) async {
+    final List<Map<String, dynamic>> jsonData = [];
+    
+    for (var item in items) {
+      final color = Color(item.color);
+      final privateKey = await item.getPrivateKey(_ref);
+
+      jsonData.add({
         "id": item.id,
         "colorComponents": [color.r, color.g, color.b, color.a],
         "name": item.name,
-        "privateKey": item.privateKey,
+        "privateKey": privateKey ?? '',
         "icon": "tortoise.fill",
         "isActive": true,
         "additionalKeys": [],
-      };
-    }).toList();
+      });
+    }
 
     const encoder = JsonEncoder.withIndent('  ');
     final String jsonString = encoder.convert(jsonData);

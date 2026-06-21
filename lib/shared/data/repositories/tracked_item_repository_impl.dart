@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../core/services/key_storage_service.dart';
 import '../../../core/services/macless_haystack_api_service.dart';
 import '../../../core/services/preferences_service.dart';
 import '../../../core/utils/findmy_crypto_utils.dart';
@@ -14,8 +15,9 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
   final AppDatabase _db;
   final MaclessHaystackApiService apiService;
   final PreferencesService _prefs;
+  final KeyStorageService _keyStorage;
 
-  TrackedItemRepositoryImpl(this._db, this.apiService, this._prefs);
+  TrackedItemRepositoryImpl(this._db, this.apiService, this._prefs, this._keyStorage);
 
   @override
   Stream<List<TrackedItem>> watchItems() {
@@ -35,7 +37,7 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
           TrackedItemDbData(
             id: item.id,
             name: item.name,
-            privateKey: item.privateKey,
+            publicKey: item.publicKey,
             color: item.color,
             emoji: item.emoji,
             orderIndex: item.orderIndex,
@@ -52,7 +54,7 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
           TrackedItemDbData(
             id: item.id,
             name: item.name,
-            privateKey: item.privateKey,
+            publicKey: item.publicKey,
             color: item.color,
             emoji: item.emoji,
             orderIndex: item.orderIndex,
@@ -71,7 +73,7 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
               TrackedItemDbData(
                 id: item.id,
                 name: item.name,
-                privateKey: item.privateKey,
+                publicKey: item.publicKey,
                 color: item.color,
                 emoji: item.emoji,
                 orderIndex: i,
@@ -97,7 +99,13 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
 
     for (var item in items) {
       try {
-        String normalizedKey = item.privateKey;
+        String? privateKey = await _keyStorage.getPrivateKey(item.publicKey);
+        if (privateKey == null) {
+          Logger.error("No private key for item '${item.name}'", prefix: "TrackedItemRepository");
+          continue;
+        }
+
+        String normalizedKey = privateKey;
         while (normalizedKey.length % 4 != 0) {
           normalizedKey += '=';
         }

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:myhaystack/core/services/key_storage_service.dart';
 import 'package:myhaystack/core/services/macless_haystack_api_service.dart';
 import 'package:myhaystack/core/services/preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,11 +25,16 @@ final maclessHaystackAPIServiceProvider = Provider<MaclessHaystackApiService>((r
   return MaclessHaystackApiService();
 });
 
+final keyStorageServiceProvider = Provider<KeyStorageService>((ref) {
+  return KeyStorageService();
+});
+
 final trackedItemRepositoryProvider = Provider<TrackedItemRepository>((ref) {
   final db = ref.watch(databaseProvider);
   final apiService = ref.watch(maclessHaystackAPIServiceProvider);
   final prefs = ref.watch(preferencesServiceProvider);
-  return TrackedItemRepositoryImpl(db, apiService, prefs);
+  final keyStorage = ref.watch(keyStorageServiceProvider);
+  return TrackedItemRepositoryImpl(db, apiService, prefs, keyStorage);
 });
 
 final syncLocationsUseCaseProvider = Provider<SyncLocationsUseCase>((ref) {

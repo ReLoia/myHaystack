@@ -22,7 +22,7 @@ class OfflineFilter extends StatelessWidget {
         0,      0,      0,      1, 0,
       ]),
       child: Opacity(
-        opacity: 0.65,
+        opacity: 0.9,
         child: child,
       ),
     );
