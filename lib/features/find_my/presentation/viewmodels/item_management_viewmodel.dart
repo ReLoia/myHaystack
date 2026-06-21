@@ -129,7 +129,9 @@ class ItemManagementViewModel extends StreamNotifier<List<TrackedItem>> {
   }
 }
 
-final itemExportServiceProvider = Provider((ref) => ItemExportService());
+final itemExportServiceProvider = Provider((ref) {
+  return ItemExportService(ref);
+});
 
 final itemImportServiceProvider = Provider((ref) => ItemImportService());
 
