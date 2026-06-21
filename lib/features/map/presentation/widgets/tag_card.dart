@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myhaystack/core/utils/time_utils.dart';
 import 'package:myhaystack/shared/widgets/offline_filter.dart';
 
 import '../../../../shared/domain/entities/tracked_item.dart';
+import '../../../../shared/presentation/providers/geocoding_cache_provider.dart';
 
-class TagCard extends StatelessWidget {
+class TagCard extends ConsumerWidget {
   final TrackedItem item;
   final bool selected;
-  final Function() onTap;
+  final VoidCallback onTap;
 
   const TagCard({
     super.key,
@@ -17,74 +19,113 @@ class TagCard extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final brightness = Theme.of(context).brightness;
-
     final itemColorScheme = item.getColorScheme(brightness);
+
+    final (batteryIcon, batteryColor) = switch (item.batteryStatus) {
+      0 => (Icons.battery_full_rounded, Colors.green),
+      1 => (Icons.battery_6_bar_rounded, Colors.amber),
+      2 => (Icons.battery_3_bar_rounded, Colors.orange),
+      _ => (Icons.battery_alert_rounded, Colors.red),
+    };
+
+    String addressText = 'No location';
+
+    if (item.currLocation.latitude != 0 && item.currLocation.longitude != 0) {
+      final cacheNotifier = ref.read(geocodingCacheProvider.notifier);
+      final cacheKey = cacheNotifier.getCacheKey(item.currLocation);
+
+      final cacheMap = ref.watch(geocodingCacheProvider);
+
+      if (cacheMap.containsKey(cacheKey)) {
+        addressText = cacheMap[cacheKey]!;
+      } else {
+        addressText = 'Loading address...';
+        Future.microtask(() => cacheNotifier.fetchAddress(item.currLocation));
+      }
+    }
+
+    final hasEmoji = item.emoji != null && item.emoji!.trim().isNotEmpty;
 
     return GestureDetector(
       onTap: onTap,
       child: OfflineFilter(
-          isOffline: item.isOffline,
-          child: Card(
-            margin: EdgeInsets.fromLTRB(8, selected ? 4 : 12, 8, selected ? 8 : 4),
-            elevation: 6,
+        isOffline: item.isOffline,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          margin: EdgeInsets.fromLTRB(8, selected ? 4 : 12, 8, selected ? 12 : 4),
+          decoration: BoxDecoration(
             color: itemColorScheme.surface.withValues(alpha: 0.95),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: itemColorScheme.primaryContainer,
-                        child: item.emoji != null && item.emoji!.trim().isNotEmpty
-                            ? Text(
-                          item.emoji!,
-                          style: const TextStyle(fontSize: 20),
-                        )
-                            : Icon(
-                          Icons.location_on,
-                          color: itemColorScheme.onPrimaryContainer,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: selected ? 0.15 : 0.05),
+                blurRadius: selected ? 16 : 6,
+                spreadRadius: selected ? 1 : 0,
+                offset: Offset(0, selected ? 8 : 2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: itemColorScheme.primaryContainer,
+                      child: hasEmoji
+                          ? Text(
+                              item.emoji!,
+                              style: const TextStyle(fontSize: 20),
+                            )
+                          : Icon(
+                              Icons.location_on,
+                              color: itemColorScheme.onPrimaryContainer,
+                            ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
-                            verticalDirection: VerticalDirection.up,
                             children: [
-                              Text(
-                                item.name,
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: itemColorScheme.onSurface,
+                              Expanded(
+                                child: Text(
+                                  item.name,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: itemColorScheme.onSurface,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               RotatedBox(
                                 quarterTurns: 1,
                                 child: Icon(
-                                  switch (item.batteryStatus) {
-                                    0 => Icons.battery_full_rounded,
-                                    1 => Icons.battery_6_bar_rounded,
-                                    2 => Icons.battery_3_bar_rounded,
-                                    3 || _ => Icons.battery_alert_rounded,
-                                  },
-                                  color: switch (item.batteryStatus) {
-                                    0 => Colors.green,
-                                    1 => Colors.amber,
-                                    2 => Colors.orange,
-                                    3 || _ => Colors.red,
-                                  },
+                                  batteryIcon,
+                                  color: batteryColor,
                                   size: 22,
                                 ),
                               ),
                             ],
+                          ),
+                          Text(
+                            addressText,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: itemColorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.8),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             item.lastSeen?.timeAgo() ?? 'Never seen',
@@ -92,18 +133,19 @@ class TagCard extends StatelessWidget {
                               fontSize: 12,
                               color: itemColorScheme.onSurfaceVariant,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          // TODO: use some api to get the address of the location and other data
                         ],
                       ),
-                    ],
-                  ),
-                  const Spacer(),
-                  Row(children: []),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+                const Spacer(),
+              ],
             ),
-          )
+          ),
+        ),
       ),
     );
   }

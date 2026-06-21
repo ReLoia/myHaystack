@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:myhaystack/features/preferences/presentation/screens/settings.dart';
 import 'package:myhaystack/shared/domain/entities/tracked_item.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/services/location_service.dart';
 import '../viewmodels/map_viewmodel.dart';
@@ -52,7 +53,7 @@ class _MapPageState extends ConsumerState<MapPage>
     if (state != null && state.items.isNotEmpty) {
       _animatedMapController.animateTo(
         dest: state.items[index].currLocation,
-        zoom: 18.0,
+        zoom: 17.0,
       );
     }
   }
@@ -177,10 +178,38 @@ class _MapPageState extends ConsumerState<MapPage>
                 ),
                 children: [
                   TileLayer(
+                    // based on: https://github.com/seemoo-lab/openhaystack/blob/main/openhaystack-mobile/lib/map/map.dart#L105-L117
+                    tileProvider: NetworkTileProvider(),
+                    tileBuilder: (context, child, tile) {
+                      var isDark = (Theme.of(context).brightness == Brightness.dark);
+                      return isDark
+                          ? ColorFiltered(
+                        colorFilter: const ColorFilter.matrix([
+                          -.98, 0, 0, 0, 255, // R
+                          0, -.98, 0, 0, 255, // G
+                          0, 0, -.98, 0, 255, // B
+                          0, 0, 0, 1, 0,
+                        ]),
+                        child: child,
+                      )
+                          : child;
+                    },
                     urlTemplate:
                         'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
                     subdomains: const ['a', 'b', 'c', 'd'],
                     userAgentPackageName: "it.reloia.myhaystack",
+                  ),
+                  RichAttributionWidget(
+                    attributions: [
+                      TextSourceAttribution(
+                        '© OpenStreetMap contributors',
+                        onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
+                      ),
+                      TextSourceAttribution(
+                        '© CARTO',
+                        onTap: () => launchUrl(Uri.parse('https://carto.com/attributions')),
+                      ),
+                    ],
                   ),
                   Builder(
                     builder: (context) {
