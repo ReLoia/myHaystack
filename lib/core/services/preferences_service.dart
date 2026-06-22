@@ -9,6 +9,7 @@ class PreferencesService {
   static const _usernameKey = 'username';
   static const _passwordKey = 'password';
   static const _daysRetrievalKey = 'daysRetrieval';
+  static const _autoPanAtStartupKey = 'autoPanAtStartup';
 
   String get serverUrl => _prefs.getString(_serverUrlKey) ?? '';
 
@@ -29,4 +30,9 @@ class PreferencesService {
 
   Future<void> setDaysRetrieval(int value) =>
       _prefs.setInt(_daysRetrievalKey, value);
+
+  bool get autoPanAtStartup => _prefs.getBool(_autoPanAtStartupKey) ?? true;
+
+  Future<void> setAutoPanAtStartup(bool value) =>
+      _prefs.setBool(_autoPanAtStartupKey, value);
 }

@@ -22,9 +22,7 @@ class NominatimApiService {
     }
   }
 
-  Future<String> reverseLatLng({
-    required LatLng coordinates,
-  }) async {
+  Future<String> reverseLatLng({required LatLng coordinates}) async {
     try {
       final response = await _dio.get(
         "https://nominatim.openstreetmap.org/reverse",
@@ -35,17 +33,20 @@ class NominatimApiService {
           'addressdetails': '1',
         },
         options: Options(
-          headers: {
-            'User-Agent': 'it.reloia.myhaystack (reloia@proton.me)',
-          },
+          headers: {'User-Agent': 'it.reloia.myhaystack (reloia@proton.me)'},
         ),
       );
 
       var address = response.data['address'];
 
-      return address != null ? "${address['road']}, ${address['town'] ?? address['city']}, ${address['country']}" : 'No address found';
+      return address != null
+          ? "${address['road']}, ${address['town'] ?? address['city']}, ${address['country']}"
+          : 'No address found';
     } on DioException catch (e) {
-      Logger.error(e.message ?? "No error message", prefix: "Nominatim API Service");
+      Logger.error(
+        e.message ?? "No error message",
+        prefix: "Nominatim API Service",
+      );
       throw Exception("Network error: ${e.message}");
     } catch (e) {
       Logger.error(e.toString(), prefix: "Nominatim API Service");

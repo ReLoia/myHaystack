@@ -113,6 +113,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     },
                   ),
                 ),
+                SwitchListTile(
+                  title: const Text('Auto-center map'),
+                  subtitle: const Text(
+                    'Automatically move to current position at startup',
+                  ),
+                  value: state.autoPanAtStartup ?? false,
+                  onChanged: (val) {
+                    viewModel.updateAutoPanAtStartup(val);
+                  },
+                ),
               ],
             ),
           ),

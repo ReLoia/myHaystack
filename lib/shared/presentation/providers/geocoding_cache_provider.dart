@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
-import '../../../core/services/nominatim_api_service.dart';
+import 'app_providers.dart';
 
 class GeocodingCacheNotifier extends Notifier<Map<String, String>> {
   final List<LatLng> _queue = [];

@@ -7,12 +7,14 @@ class PreferencesState {
   final String username;
   final String password;
   final int daysRetrieval;
+  final bool autoPanAtStartup;
 
   PreferencesState({
     required this.serverUrl,
     required this.username,
     required this.password,
     required this.daysRetrieval,
+    required this.autoPanAtStartup
   });
 
   PreferencesState copyWith({
@@ -20,12 +22,14 @@ class PreferencesState {
     String? username,
     String? password,
     int? daysRetrieval,
+    bool? autoPanAtStartup
   }) {
     return PreferencesState(
       serverUrl: serverUrl ?? this.serverUrl,
       username: username ?? this.username,
       password: password ?? this.password,
       daysRetrieval: daysRetrieval ?? this.daysRetrieval,
+      autoPanAtStartup: autoPanAtStartup ?? this.autoPanAtStartup
     );
   }
 }
@@ -41,6 +45,7 @@ class PreferencesNotifier extends Notifier<PreferencesState> {
       username: _prefs.username,
       password: _prefs.password,
       daysRetrieval: _prefs.daysRetrieval,
+      autoPanAtStartup: _prefs.autoPanAtStartup
     );
   }
 
@@ -62,6 +67,11 @@ class PreferencesNotifier extends Notifier<PreferencesState> {
   Future<void> updateDaysRetrieval(int value) async {
     await _prefs.setDaysRetrieval(value);
     state = state.copyWith(daysRetrieval: value);
+  }
+
+  Future<void> updateAutoPanAtStartup(bool value) async {
+    await _prefs.setAutoPanAtStartup(value);
+    state = state.copyWith(autoPanAtStartup: value);
   }
 }
 
