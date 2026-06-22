@@ -3,7 +3,7 @@ description: "A remake of Macless Haystack (originally OpenHaystack) Mobile App.
 publish_to: 'none'
 
 # Important
-version: 1.0.0+1
+version: 1.0.2+40
 
 environment:
   sdk: ^3.12.2
