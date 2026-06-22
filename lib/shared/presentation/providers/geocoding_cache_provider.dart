@@ -5,8 +5,6 @@ import 'package:latlong2/latlong.dart';
 
 import '../../../core/services/nominatim_api_service.dart';
 
-final nominatimApiProvider = Provider((ref) => NominatimApiService());
-
 class GeocodingCacheNotifier extends Notifier<Map<String, String>> {
   final List<LatLng> _queue = [];
   bool _isProcessing = false;

@@ -4,6 +4,7 @@ import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:myhaystack/features/preferences/presentation/screens/settings.dart';
+import 'package:myhaystack/features/preferences/presentation/viewmodels/preferences_viewmodel.dart';
 import 'package:myhaystack/shared/domain/entities/tracked_item.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -144,6 +145,7 @@ class _MapPageState extends ConsumerState<MapPage>
   Widget build(BuildContext context) {
     final mapStateAsync = ref.watch(mapViewModelProvider);
     final userLocationAsync = ref.watch(userLocationProvider);
+    final userPreferences = ref.watch(preferencesViewModelProvider);
     ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -166,7 +168,11 @@ class _MapPageState extends ConsumerState<MapPage>
                   interactionOptions: const InteractionOptions(
                     flags: InteractiveFlag.all,
                   ),
-                  onMapReady: _moveToUser,
+                  onMapReady: () {
+                    if (userPreferences.autoPanAtStartup) {
+                      _moveToUser();
+                    }
+                  },
                   maxZoom: 20,
                   minZoom: 4,
                   cameraConstraint: CameraConstraint.contain(

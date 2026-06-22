@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myhaystack/core/services/key_storage_service.dart';
 import 'package:myhaystack/core/services/macless_haystack_api_service.dart';
+import 'package:myhaystack/core/services/nominatim_api_service.dart';
 import 'package:myhaystack/core/services/preferences_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -13,21 +14,21 @@ final sharedPreferencesProvider = Provider<SharedPreferences>((ref) {
   throw UnimplementedError('Initialize sharedPreferencesProvider in main.dart');
 });
 
-final preferencesServiceProvider = Provider<PreferencesService>((ref) {
-  return PreferencesService(ref.watch(sharedPreferencesProvider));
-});
+final preferencesServiceProvider = Provider<PreferencesService>(
+  (ref) => PreferencesService(ref.watch(sharedPreferencesProvider)),
+);
 
-final databaseProvider = Provider<AppDatabase>((ref) {
-  return AppDatabase();
-});
+final databaseProvider = Provider<AppDatabase>((ref) => AppDatabase());
 
-final maclessHaystackAPIServiceProvider = Provider<MaclessHaystackApiService>((ref) {
-  return MaclessHaystackApiService();
-});
+final nominatimApiProvider = Provider<NominatimApiService>(
+  (ref) => NominatimApiService(),
+);
 
-final keyStorageServiceProvider = Provider<KeyStorageService>((ref) {
-  return KeyStorageService();
-});
+final maclessHaystackAPIServiceProvider = Provider<MaclessHaystackApiService>(
+  (ref) => MaclessHaystackApiService(),
+);
+
+final keyStorageServiceProvider = Provider<KeyStorageService>((ref) => KeyStorageService());
 
 final trackedItemRepositoryProvider = Provider<TrackedItemRepository>((ref) {
   final db = ref.watch(databaseProvider);

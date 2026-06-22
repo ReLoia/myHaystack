@@ -24,6 +24,42 @@ class MaclessHaystackApiService {
     }
   }
 
+  Future<bool> checkConnection({
+    required String serverUrl,
+    String? username,
+    String? password,
+  }) async {
+    final headers = {"Content-Type": "application/json"};
+
+    if (username != null && username.isNotEmpty) {
+      final authString = base64.encode(utf8.encode("$username:$password"));
+      headers['Authorization'] = 'Basic $authString';
+    }
+
+    try {
+      final response = await _dio.post(
+        serverUrl,
+        data: {"ids": [], "days": 1},
+        options: Options(
+          headers: headers,
+          sendTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 5),
+        ),
+      );
+
+      return response.statusCode == 200;
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        throw Exception("Authentication failure. Check Username and Password.");
+      } else if (e.response?.statusCode == 404) {
+        throw Exception("Server found, but endpoint is incorrect (404).");
+      }
+      throw Exception("Network error: ${e.message}");
+    } catch (e) {
+      throw Exception("Unexpected error: $e");
+    }
+  }
+
   Future<List<LocationReportModel>> fetchLocationReports({
     required List<String> hashedAdvertisementKeys,
     required int daysToFetch,
