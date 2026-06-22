@@ -154,17 +154,22 @@ class _ConnectionModalState extends ConsumerState<ConnectionModal> {
           child: const Text('Cancel'),
         ),
         if (!_checkSuccess)
-          ElevatedButton(
-            onPressed: _urlController.text.isEmpty || _isChecking
-                ? null
-                : _checkConnection,
-            child: _isChecking
-                ? const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Text('Check Connection'),
+          ListenableBuilder(
+            listenable: _urlController,
+            builder: (context, child) {
+              return ElevatedButton(
+                onPressed: _urlController.text.isEmpty || _isChecking
+                    ? null
+                    : _checkConnection,
+                child: _isChecking
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Check Connection'),
+              );
+            },
           ),
         if (_checkSuccess)
           ElevatedButton(
