@@ -51,7 +51,9 @@ class _MapPageState extends ConsumerState<MapPage>
     ref.read(mapViewModelProvider.notifier).updateIndex(index);
 
     final state = ref.read(mapViewModelProvider).value;
-    if (state != null && state.items.isNotEmpty) {
+    if (state != null &&
+        state.items.isNotEmpty &&
+        !state.items[index].hasNoData) {
       _animatedMapController.animateTo(
         dest: state.items[index].currLocation,
         zoom: 17.0,
@@ -92,44 +94,52 @@ class _MapPageState extends ConsumerState<MapPage>
 
   Future<void> _syncLocations() async {
     if (_isSyncing) return;
+
     setState(() {
       _isSyncing = true;
       _syncResult = null;
     });
+
     _refreshAnimController.repeat();
 
-    try {
-      final int count = await ref
-          .read(mapViewModelProvider.notifier)
-          .syncLocations();
+    final newItemsCount = await ref
+        .read(mapViewModelProvider.notifier)
+        .syncLocations();
 
-      if (!mounted) return;
-      _refreshAnimController.stop();
-      _refreshAnimController.reset();
+    if (!mounted) return;
 
+    _refreshAnimController.stop();
+    _refreshAnimController.reset();
+
+    if (newItemsCount > 0) {
       setState(() {
-        _syncResult = count;
+        _syncResult = newItemsCount;
       });
 
       await Future.delayed(const Duration(seconds: 2));
+    }
 
-      if (mounted) {
-        setState(() {
-          _syncResult = null;
-          _isSyncing = false;
-        });
-      }
-    } catch (e) {
-      if (!mounted) return;
-      _refreshAnimController.stop();
-      _refreshAnimController.reset();
+    if (mounted) {
       setState(() {
+        _syncResult = null;
         _isSyncing = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Sync failed: $e')));
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final hasRun = ref.read(initialSyncProvider);
+
+      if (!hasRun) {
+        ref.read(initialSyncProvider.notifier).markAsRun();
+
+        _syncLocations();
+      }
+    });
   }
 
   @override
@@ -187,17 +197,18 @@ class _MapPageState extends ConsumerState<MapPage>
                     // based on: https://github.com/seemoo-lab/openhaystack/blob/main/openhaystack-mobile/lib/map/map.dart#L105-L117
                     tileProvider: NetworkTileProvider(),
                     tileBuilder: (context, child, tile) {
-                      var isDark = (Theme.of(context).brightness == Brightness.dark);
+                      var isDark =
+                          (Theme.of(context).brightness == Brightness.dark);
                       return isDark
                           ? ColorFiltered(
-                        colorFilter: const ColorFilter.matrix([
-                          -.98, 0, 0, 0, 255, // R
-                          0, -.98, 0, 0, 255, // G
-                          0, 0, -.98, 0, 255, // B
-                          0, 0, 0, 1, 0,
-                        ]),
-                        child: child,
-                      )
+                              colorFilter: const ColorFilter.matrix([
+                                -.98, 0, 0, 0, 255, // R
+                                0, -.98, 0, 0, 255, // G
+                                0, 0, -.98, 0, 255, // B
+                                0, 0, 0, 1, 0,
+                              ]),
+                              child: child,
+                            )
                           : child;
                     },
                     urlTemplate:
@@ -209,11 +220,15 @@ class _MapPageState extends ConsumerState<MapPage>
                     attributions: [
                       TextSourceAttribution(
                         '© OpenStreetMap contributors',
-                        onTap: () => launchUrl(Uri.parse('https://openstreetmap.org/copyright')),
+                        onTap: () => launchUrl(
+                          Uri.parse('https://openstreetmap.org/copyright'),
+                        ),
                       ),
                       TextSourceAttribution(
                         '© CARTO',
-                        onTap: () => launchUrl(Uri.parse('https://carto.com/attributions')),
+                        onTap: () => launchUrl(
+                          Uri.parse('https://carto.com/attributions'),
+                        ),
                       ),
                     ],
                   ),
@@ -272,10 +287,11 @@ class _MapPageState extends ConsumerState<MapPage>
                             ),
                           ),
                         ),
+                      // All the items except the noData ones
                       ...items.indexed
                           .where((record) {
-                            final (index, _) = record;
-                            return index != currentIndex;
+                            final (index, item) = record;
+                            return !item.hasNoData && index != currentIndex;
                           })
                           .map((record) {
                             final (index, item) = record;
@@ -465,3 +481,16 @@ class _MapPageState extends ConsumerState<MapPage>
     );
   }
 }
+
+class InitialSyncNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  void markAsRun() {
+    state = true;
+  }
+}
+
+final initialSyncProvider = NotifierProvider<InitialSyncNotifier, bool>(() {
+  return InitialSyncNotifier();
+});

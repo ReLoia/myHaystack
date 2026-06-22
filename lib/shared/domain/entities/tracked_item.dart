@@ -46,6 +46,11 @@ class TrackedItem {
     if (lastSeen == null) return true;
     return DateTime.now().difference(lastSeen!).inHours >= 6;
   }
+
+  bool get hasNoData {
+    if (currLocation.latitude == 0 && currLocation.longitude == 0) return true;
+    return false;
+  }
 }
 
 extension TrackedItemSecurity on TrackedItem {
