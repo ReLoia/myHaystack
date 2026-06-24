@@ -13,11 +13,27 @@ class ItemImportService {
       allowedExtensions: ['json'],
     );
 
-    if (result == null || result.files.single.path == null) return [];
+    if (result == null || result.files.isEmpty) return [];
 
-    final file = File(result.files.single.path!);
-    final String content = await file.readAsString();
-    return parseJsonContent(content);
+    final List<ImportedItem> allImportedItems = [];
+
+    for (final platformFile in result.files) {
+      if (platformFile.path == null) continue;
+
+      try {
+        final file = File(platformFile.path!);
+        final String content = await file.readAsString();
+
+        final List<ImportedItem> parsedItems = parseJsonContent(content);
+
+        allImportedItems.addAll(parsedItems);
+
+      } catch (e) {
+        debugPrint('Failed to read file ${platformFile.name}: $e');
+      }
+    }
+
+    return allImportedItems;
   }
 
   List<ImportedItem> parseJsonContent(String content) {
