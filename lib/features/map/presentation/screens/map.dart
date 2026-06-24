@@ -3,10 +3,10 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_animations/flutter_map_animations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:myhaystack/features/map/presentation/widgets/core_map.dart';
 import 'package:myhaystack/features/preferences/presentation/screens/settings.dart';
 import 'package:myhaystack/features/preferences/presentation/viewmodels/preferences_viewmodel.dart';
 import 'package:myhaystack/shared/domain/entities/tracked_item.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/services/location_service.dart';
 import '../viewmodels/map_viewmodel.dart';
@@ -168,70 +168,17 @@ class _MapPageState extends ConsumerState<MapPage>
 
           return Stack(
             children: [
-              FlutterMap(
+              CoreMap(
                 mapController: _animatedMapController.mapController,
-                options: MapOptions(
-                  initialCenter: items.isNotEmpty
-                      ? items[0].currLocation
-                      : const LatLng(50.85045, 4.34878),
-                  initialZoom: 15.0,
-                  interactionOptions: const InteractionOptions(
-                    flags: InteractiveFlag.all,
-                  ),
-                  onMapReady: () {
-                    if (userPreferences.autoPanAtStartup) {
-                      _moveToUser();
-                    }
-                  },
-                  maxZoom: 20,
-                  minZoom: 4,
-                  cameraConstraint: CameraConstraint.contain(
-                    bounds: LatLngBounds(
-                      const LatLng(-90, -180),
-                      const LatLng(90, 180),
-                    ),
-                  ),
-                ),
-                children: [
-                  TileLayer(
-                    // based on: https://github.com/seemoo-lab/openhaystack/blob/main/openhaystack-mobile/lib/map/map.dart#L105-L117
-                    tileProvider: NetworkTileProvider(),
-                    tileBuilder: (context, child, tile) {
-                      var isDark =
-                          (Theme.of(context).brightness == Brightness.dark);
-                      return isDark
-                          ? ColorFiltered(
-                              colorFilter: const ColorFilter.matrix([
-                                -.98, 0, 0, 0, 255, // R
-                                0, -.98, 0, 0, 255, // G
-                                0, 0, -.98, 0, 255, // B
-                                0, 0, 0, 1, 0,
-                              ]),
-                              child: child,
-                            )
-                          : child;
-                    },
-                    urlTemplate:
-                        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                    subdomains: const ['a', 'b', 'c', 'd'],
-                    userAgentPackageName: "it.reloia.myhaystack",
-                  ),
-                  RichAttributionWidget(
-                    attributions: [
-                      TextSourceAttribution(
-                        '© OpenStreetMap contributors',
-                        onTap: () => launchUrl(
-                          Uri.parse('https://openstreetmap.org/copyright'),
-                        ),
-                      ),
-                      TextSourceAttribution(
-                        '© CARTO',
-                        onTap: () => launchUrl(
-                          Uri.parse('https://carto.com/attributions'),
-                        ),
-                      ),
-                    ],
-                  ),
+                initialCenter: items.isNotEmpty
+                    ? items[0].currLocation
+                    : const LatLng(50.85045, 4.34878),
+                onMapReady: () {
+                  if (userPreferences.autoPanAtStartup) {
+                    _moveToUser();
+                  }
+                },
+                layers: [
                   Builder(
                     builder: (context) {
                       final camera = MapCamera.of(context);
@@ -290,13 +237,13 @@ class _MapPageState extends ConsumerState<MapPage>
                       // All the items except the noData ones
                       ...items.indexed
                           .where((record) {
-                            final (index, item) = record;
-                            return !item.hasNoData && index != currentIndex;
-                          })
+                        final (index, item) = record;
+                        return !item.hasNoData && index != currentIndex;
+                      })
                           .map((record) {
-                            final (index, item) = record;
-                            return _buildMarker(item, false, index);
-                          }),
+                        final (index, item) = record;
+                        return _buildMarker(item, false, index);
+                      }),
                       if (items.isNotEmpty)
                         _buildMarker(items[currentIndex], true, currentIndex),
                     ],
