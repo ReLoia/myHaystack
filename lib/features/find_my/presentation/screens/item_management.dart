@@ -52,40 +52,41 @@ class _ItemManagementPageState extends ConsumerState<ItemManagementPage>
       appBar: AppBar(
         title: const Text('Manage Items'),
         actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) async {
-              final items = ref.read(itemManagementViewModelProvider).value;
-              if (items == null || items.isEmpty) return;
+          if (itemsAsyncValue.value != null && itemsAsyncValue.value!.isNotEmpty)
+            PopupMenuButton<String>(
+              onSelected: (value) async {
+                final items = ref.read(itemManagementViewModelProvider).value;
+                if (items == null || items.isEmpty) return;
 
-              if (value == 'export') {
-                await ref.read(itemExportServiceProvider).exportItemsToJson(items);
-              } else if (value == 'share') {
-                await ref.read(itemExportServiceProvider).shareItems(items);
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem(
-                value: 'export',
-                child: Row(
-                  children: [
-                    Icon(Icons.save_alt),
-                    SizedBox(width: 8),
-                    Text('Save to Device'),
-                  ],
+                if (value == 'export') {
+                  await ref.read(itemExportServiceProvider).exportItemsToJson(items);
+                } else if (value == 'share') {
+                  await ref.read(itemExportServiceProvider).shareItems(items);
+                }
+              },
+              itemBuilder: (BuildContext context) => [
+                const PopupMenuItem(
+                  value: 'export',
+                  child: Row(
+                    children: [
+                      Icon(Icons.save_alt),
+                      SizedBox(width: 8),
+                      Text('Save to Device'),
+                    ],
+                  ),
                 ),
-              ),
-              const PopupMenuItem(
-                value: 'share',
-                child: Row(
-                  children: [
-                    Icon(Icons.share),
-                    SizedBox(width: 8),
-                    Text('Share to App'),
-                  ],
+                const PopupMenuItem(
+                  value: 'share',
+                  child: Row(
+                    children: [
+                      Icon(Icons.share),
+                      SizedBox(width: 8),
+                      Text('Share to App'),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
 
