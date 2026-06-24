@@ -48,6 +48,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final state = ref.watch(preferencesViewModelProvider);
     final viewModel = ref.read(preferencesViewModelProvider.notifier);
 
+    final bool isConnectionPrefMissing = state.serverUrl.isEmpty;
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(title: const Text("Settings")),
       body: Column(
@@ -77,7 +80,19 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   leading: const Icon(Icons.dns),
                   title: const Text('Configure Server Connection'),
                   subtitle: const Text('URL, Username, and Password'),
-                  trailing: const Icon(Icons.chevron_right),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isConnectionPrefMissing) ...[
+                        Icon(
+                          Icons.error_outline,
+                          color: theme.colorScheme.error,
+                        ),
+                        const SizedBox(width: 8),
+                      ],
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
                   onTap: () => _openConnectionModal(context, state, viewModel),
                 ),
 

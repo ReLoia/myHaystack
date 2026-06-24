@@ -50,7 +50,7 @@ class MaclessHaystackApiService {
       return response.statusCode == 200;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
-        throw Exception("Authentication failure. Check Username and Password.");
+        throw Exception("Authentication failure.\nCheck Username and Password.");
       } else if (e.response?.statusCode == 404) {
         throw Exception("Server found, but endpoint is incorrect (404).");
       }
