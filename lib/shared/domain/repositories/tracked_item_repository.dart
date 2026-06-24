@@ -1,3 +1,4 @@
+import '../entities/location_point.dart';
 import '../entities/tracked_item.dart';
 
 abstract class TrackedItemRepository {
@@ -14,4 +15,6 @@ abstract class TrackedItemRepository {
   Future<void> deleteTrackedItem(String itemId);
 
   Future<int> syncLocationsWithServer();
+
+  Future<List<LocationPoint>> getItemLocationHistory(String itemId);
 }

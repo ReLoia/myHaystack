@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+import 'package:myhaystack/shared/domain/entities/location_point.dart';
 
 import '../../../core/services/key_storage_service.dart';
 import '../../../core/services/macless_haystack_api_service.dart';
@@ -184,5 +185,10 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
     }
 
     return totalSynced;
+  }
+
+  @override
+  Future<List<LocationPoint>> getItemLocationHistory(String itemId) {
+    return _db.getItemLocationPoints(itemId);
   }
 }

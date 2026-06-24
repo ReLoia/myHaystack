@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:myhaystack/shared/domain/entities/location_point.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
@@ -112,6 +113,25 @@ class AppDatabase extends _$AppDatabase {
         ),
       );
     }
+    return result;
+  }
+
+  Future<List<LocationPoint>> getItemLocationPoints(String itemId) async {
+    final points = await (select(locationPoints)..where((tbl) => tbl.trackedItemId.equals(itemId))).get();
+    List<LocationPoint> result = [];
+
+    for (final point in points) {
+      result.add(
+        LocationPoint(
+          location: LatLng(point.latitude, point.longitude),
+          timestamp: point.timestamp,
+          trackedItemId: point.trackedItemId,
+          accuracy: point.accuracy,
+          batteryStatus: point.batteryStatus
+        )
+      );
+    }
+
     return result;
   }
 }
