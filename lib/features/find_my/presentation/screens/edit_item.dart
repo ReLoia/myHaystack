@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myhaystack/features/preferences/presentation/widgets/section_title.dart';
 import 'package:myhaystack/shared/domain/entities/tracked_item.dart';
 
+import '../../../map/presentation/screens/item_history.dart';
 import '../viewmodels/item_management_viewmodel.dart';
 
 class EditItemPage extends ConsumerStatefulWidget {
@@ -157,8 +158,10 @@ class _EditItemPageState extends ConsumerState<EditItemPage> {
               icon: const Icon(Icons.history),
               tooltip: 'View Location History',
               onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('History page coming soon!')),
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => ItemHistoryScreen(item: widget.item),
+                  ),
                 );
               },
             ),

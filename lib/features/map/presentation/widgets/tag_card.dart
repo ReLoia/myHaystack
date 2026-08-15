@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:myhaystack/core/utils/time_utils.dart';
+import 'package:myhaystack/features/map/presentation/screens/item_history.dart';
 import 'package:myhaystack/shared/widgets/offline_filter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -173,12 +174,9 @@ class TagCard extends ConsumerWidget {
                       style: buttonStyle,
                       icon: const Icon(Icons.history_rounded),
                       onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                              "Location history coming in the future!",
-                            ),
-                            behavior: SnackBarBehavior.floating,
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => ItemHistoryScreen(item: item),
                           ),
                         );
                       },
