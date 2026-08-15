@@ -18,11 +18,10 @@ This application (currently) has the following features:
 
 - seeing items on a map
 - importing a key (or multiple keys) from JSON
+- viewing items history
 
 ### Next
 
-- viewing items history
-  [#1](https://github.com/ReLoia/myHaystack/issues/1)
 - see if a Tracked Item is nearby and add options to get a notification when the items gets "away
   from us"
     - this should be possible to implement, we simpyly need to check every minute or so every BLE
