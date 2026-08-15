@@ -14,7 +14,8 @@ if (keystorePropertiesFile.exists()) {
 
 android {
     namespace = "it.reloia.myhaystack"
-    compileSdk = flutter.compileSdkVersion
+    // TODO: remove this fix when flutter updates the compileSdkVersion to A17 (this is a fix for flutter_secure_storage)
+    compileSdk = maxOf(37, flutter.compileSdkVersion)
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -32,16 +33,29 @@ android {
 
     signingConfigs {
         create("release") {
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["keyPassword"] as String
-            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-            storePassword = keystoreProperties["storePassword"] as String
+            val keyAliasEnv =
+                System.getenv("KEY_ALIAS") ?: keystoreProperties.getProperty("keyAlias")
+            val keyPasswordEnv =
+                System.getenv("KEY_PASSWORD") ?: keystoreProperties.getProperty("keyPassword")
+            val storeFilePath =
+                System.getenv("KEYSTORE_PATH") ?: keystoreProperties.getProperty("storeFile")
+            val storePasswordEnv = System.getenv("KEYSTORE_PASSWORD")
+                ?: keystoreProperties.getProperty("storePassword")
+
+            if (!keyAliasEnv.isNullOrEmpty() && !keyPasswordEnv.isNullOrEmpty() && !storeFilePath.isNullOrEmpty() && !storePasswordEnv.isNullOrEmpty()) {
+                keyAlias = keyAliasEnv
+                keyPassword = keyPasswordEnv
+                storeFile = file(storeFilePath)
+                storePassword = storePasswordEnv
+            }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            val releaseConfig = signingConfigs.getByName("release")
+            signingConfig =
+                if (releaseConfig.storeFile != null) releaseConfig else signingConfigs.getByName("debug")
 
             isMinifyEnabled = true
             isShrinkResources = true

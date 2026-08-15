@@ -8,16 +8,16 @@ import '../../shared/domain/entities/imported_item.dart';
 
 class ItemImportService {
   Future<List<ImportedItem>> pickAndParseJson() async {
-    FilePickerResult? result = await FilePicker.pickFiles(
+    List<PlatformFile>? result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
 
-    if (result == null || result.files.isEmpty) return [];
+    if (result.isEmpty) return [];
 
     final List<ImportedItem> allImportedItems = [];
 
-    for (final platformFile in result.files) {
+    for (final platformFile in result) {
       if (platformFile.path == null) continue;
 
       try {

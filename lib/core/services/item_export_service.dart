@@ -35,7 +35,7 @@ class ItemExportService {
     final String jsonString = encoder.convert(data);
     final Uint8List fileBytes = Uint8List.fromList(utf8.encode(jsonString));
 
-    String? outputFile = await FilePicker.saveFile(
+    Uri? outputFile = await FilePicker.saveFile(
       dialogTitle: 'Save Export',
       fileName: defaultFileName,
       type: FileType.custom,
