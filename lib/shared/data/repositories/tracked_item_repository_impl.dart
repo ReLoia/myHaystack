@@ -174,7 +174,7 @@ class TrackedItemRepositoryImpl implements TrackedItemRepository {
           prefix: "TrackedItemRepository",
         );
 
-        totalSynced += (countAfter! - countBefore!);
+        totalSynced += (countAfter! - countBefore!).toInt();
       } catch (e) {
         Logger.error(
           "Skipping item '${item.name}' (ID: ${item.id}) or sync failed: $e",
