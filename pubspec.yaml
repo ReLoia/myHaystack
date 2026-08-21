@@ -3,7 +3,7 @@ description: "A remake of Macless Haystack (originally OpenHaystack) Mobile App.
 publish_to: 'none'
 
 # Important
-version: 1.1.1+56
+version: 1.1.1+61
 
 environment:
   sdk: ^3.12.2
@@ -18,7 +18,8 @@ dependencies:
   simple_icons: ^16.23.0
 
   #  Map Logic
-  flutter_map: ^8.3.0
+  flutter_map: ^8.3.1
+  flutter_map_tile_caching: ^10.1.1
   latlong2: ^0.9.1
   flutter_map_animations: ^0.10.0
   geolocator: ^14.0.3

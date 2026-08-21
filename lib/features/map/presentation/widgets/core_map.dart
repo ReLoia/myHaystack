@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -21,6 +22,8 @@ class CoreMap extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return FlutterMap(
       mapController: mapController,
       options: MapOptions(
@@ -41,9 +44,10 @@ class CoreMap extends StatelessWidget {
       ),
       children: [
         TileLayer(
-          tileProvider: NetworkTileProvider(),
+          tileProvider: FMTCTileProvider(
+            stores: const {'mapStore': BrowseStoreStrategy.readUpdateCreate},
+          ),
           tileBuilder: (context, child, tile) {
-            final isDark = Theme.of(context).brightness == Brightness.dark;
             return isDark
                 ? ColorFiltered(
               colorFilter: const ColorFilter.matrix([
@@ -56,8 +60,10 @@ class CoreMap extends StatelessWidget {
             )
                 : child;
           },
-          urlTemplate: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-          subdomains: const ['a', 'b', 'c', 'd'],
+          tileDisplay: const TileDisplay.fadeIn(duration: Duration(milliseconds: 150)),
+          panBuffer: 2,
+          urlTemplate: 'https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+          // subdomains: const ['a', 'b', 'c', 'd'],
           userAgentPackageName: "it.reloia.myhaystack",
         ),
         RichAttributionWidget(
