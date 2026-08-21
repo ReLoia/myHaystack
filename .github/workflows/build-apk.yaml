@@ -34,7 +34,7 @@ jobs:
         run: flutter pub get
 
       - name: Run Code Generation
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
 
       - name: Decode Android Keystore
         run: |
@@ -49,6 +49,18 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Build Universal APK
+        run: flutter build apk --release
+        env:
+          KEYSTORE_PATH: upload-keystore.jks
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+      - name: Build Debug APK
+        if: github.event_name == 'pull_request'
+        run: flutter build apk --debug
 
       - name: Upload PR Build Artifacts
         if: github.event_name == 'pull_request'
